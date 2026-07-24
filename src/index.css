@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  /* Brand palette — fresh market identity */
+  --color-basil-50: #f0f7f2;
+  --color-basil-100: #d9ecdf;
+  --color-basil-400: #4a8563;
+  --color-basil-600: #2d5f3f;
+  --color-basil-700: #234a31;
+  --color-basil-900: #16301f;
+
+  --color-mango-100: #fdecc8;
+  --color-mango-400: #f2a93b;
+  --color-mango-500: #e8961c;
+  --color-mango-600: #c97d0f;
+
+  --color-tomato-100: #fbdedb;
+  --color-tomato-500: #d64545;
+  --color-tomato-600: #b93838;
+
+  --color-cream: #fffdf8;
+  --color-cream-100: #fbf7ee;
+  --color-ink: #1e2a22;
+  --color-ink-soft: #4b564e;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Soft, diffused shadows for a premium, elevated feel */
+  --shadow-soft: 0 1px 2px rgba(22, 48, 31, 0.04), 0 4px 16px rgba(22, 48, 31, 0.06);
+  --shadow-soft-lg: 0 8px 24px rgba(22, 48, 31, 0.08), 0 2px 6px rgba(22, 48, 31, 0.04);
+  --shadow-elevated: 0 24px 48px -12px rgba(22, 48, 31, 0.22), 0 4px 12px -4px rgba(22, 48, 31, 0.08);
+  --shadow-glow: 0 10px 30px -8px rgba(242, 169, 59, 0.45);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-basil-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .market-tag1 {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .market-tag1::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--color-cream);
+    border-radius: 9999px;
+    border: 1px solid currentColor;
+  }
+
+  /* Frosted-glass surface for panels floating over photos/color.
+     Pair with Tailwind's backdrop-blur-xl utility in JSX for the blur itself —
+     doing it here as raw CSS gets its vendor-prefix stripped by the minifier. */
+  .glass-panel {
+    background: color-mix(in srgb, var(--color-cream) 70%, transparent);
+    border: 1px solid color-mix(in srgb, white 40%, transparent);
+  }
+
+  .glass-panel-dark {
+    background: color-mix(in srgb, var(--color-basil-900) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-cream) 18%, transparent);
+  }
+
+  /* Elevated card: soft shadow instead of hard border, lifts on hover */
+  .card-elevated {
+    background: white;
+    box-shadow: var(--shadow-soft);
+    transition: box-shadow 0.35s ease, transform 0.35s ease;
+  }
+
+  .card-elevated:hover {
+    box-shadow: var(--shadow-soft-lg);
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+.newsletter{
+  border: 1px solid #f2a93b;
+  color:#fff;
+}
