@@ -112,7 +112,7 @@ export default function CustomizeGroceryModal({ onClose }) {
         ref={dialogRef}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white rounded-3xl shadow-elevated w-full max-w-lg max-h-[90vh] overflow-y-auto outline-none"
+        className="relative bg-white shadow-elevated max-w-lg-[200px] max-h-[95vh] overflow-y-auto outline-none"
       >
         <div className="flex items-start justify-between p-6 pb-0">
           <div className="flex items-center gap-3">
