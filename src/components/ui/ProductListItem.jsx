@@ -34,11 +34,6 @@ export default function ProductListItem({ product }) {
           fallbackClassName="w-full h-full"
         />
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
-          {product.isBookable && (
-            <span className="text-[10px] font-semibold bg-basil-600 text-white px-2 py-0.5 rounded-full">
-              Book by Part
-            </span>
-          )}
           {product.isCombo && (
             <span className="text-[10px] font-semibold bg-basil-600 text-white px-2 py-0.5 rounded-full">
               Combo
@@ -107,12 +102,6 @@ export default function ProductListItem({ product }) {
               >
                 <Heart size={15} className={saved ? "fill-tomato-500 text-tomato-500" : "text-ink-soft"} />
               </button>
-              <Link
-                to={`/product/${product.id}`}
-                className="px-3 py-2 rounded-full text-xs font-semibold bg-basil-600 text-white hover:bg-basil-700 hover:shadow-glow transition-all"
-              >
-                Book Now
-              </Link>
             </div>
           </>
         ) : (

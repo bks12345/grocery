@@ -76,8 +76,9 @@ export default function HeroSlider({ slides }) {
   const slide = slides[current];
 
   return (
+    // relative overflow-hidden bg-basil-50 px-3 pb-5 pt-3 sm:px-5 sm:pt-5
     <section
-      className="relative overflow-hidden bg-basil-50 px-3 pt-3 sm:px-5 sm:pt-5"
+      className="relative bg-basil-50"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -87,7 +88,7 @@ export default function HeroSlider({ slides }) {
       aria-label="Featured promotions"
     >
       <div
-        className="relative h-[460px] sm:h-[500px] lg:h-[560px] rounded-3xl overflow-hidden shadow-elevated touch-pan-y"
+        className="relative h-[460px] sm:h-[500px] lg:h-[480px] overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -109,7 +110,7 @@ export default function HeroSlider({ slides }) {
         {/* Content */}
         <div className="relative h-full flex items-center px-6 sm:px-10 lg:px-14">
           <div
-            className="glass-panel-dark backdrop-blur-xl max-w-lg w-full rounded-3xl p-6 sm:p-8 max-h-[calc(100%-2rem)] overflow-y-auto"
+            className="glass-panel-dark1 backdrop-blur-xl1 max-w-lg w-full rounded-3xl p-6 sm:p-8 max-h-[calc(100%-2rem)] overflow-y-auto"
             role="group"
             aria-roledescription="slide"
             aria-label={`${current + 1} of ${slides.length}`}

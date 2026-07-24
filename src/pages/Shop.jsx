@@ -326,7 +326,7 @@ export default function Shop() {
           ) : (
             <>
               {viewMode === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
                   {result.items.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}

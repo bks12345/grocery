@@ -23,11 +23,11 @@ export default function ProductCard({ product }) {
     <div className="card-elevated group relative flex flex-col rounded-3xl overflow-hidden">
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-        {product.isBookable && (
+        {/* {product.isBookable && (
           <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full shadow-soft">
             Book by Part
           </span>
-        )}
+        )} */}
         {product.isCombo && (
           <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full shadow-soft">
             Combo Deal
@@ -95,10 +95,10 @@ export default function ProductCard({ product }) {
 
         <p className="text-xs text-ink-soft/70">{product.weight}</p>
 
-        {product.bulkNote && (
+        {/* {product.bulkNote && (
           <p className="text-xs text-basil-600 font-medium">{product.bulkNote}</p>
-        )}
-        {product.isCombo && product.comboItems && (
+        )} */}
+        {product.bulkNote && product.isCombo && product.comboItems && (
           <p className="text-xs text-basil-600 font-medium">
             {product.comboItems.length} items included
           </p>
@@ -111,12 +111,12 @@ export default function ProductCard({ product }) {
                 <span className="text-[10px] text-ink-soft/60 uppercase tracking-wide">From</span>
                 <PriceTag price={Math.min(...product.parts.map((p) => p.price))} size="sm" />
               </div>
-              <Link
+              {/* <Link
                 to={`/product/${product.id}`}
                 className="px-3 py-1.5 rounded-full text-xs font-semibold bg-basil-600 text-white hover:bg-basil-700 hover:shadow-glow transition-all"
               >
                 Book Now
-              </Link>
+              </Link> */}
             </>
           ) : (
             <>

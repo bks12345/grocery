@@ -9,9 +9,9 @@ export default function MegaMenu({ onNavigate }) {
   const { data: categories } = useAsync(() => categoryService.getCategories(), []);
 
   return (
-    <div className="w-[min(92vw,880px)] p-6 grid grid-cols-[1fr_260px] gap-6">
+    <div className="w-[min(92vw,880px)] p-6 grid gap-6">
       {/* Category + subcategory grid */}
-      <div className="grid grid-cols-3 gap-x-6 gap-y-5">
+      <div className="grid grid-cols-4 gap-x-6 gap-y-5">
         {(categories || []).map((cat) => (
           <div key={cat.id}>
             <Link
@@ -39,7 +39,7 @@ export default function MegaMenu({ onNavigate }) {
       </div>
 
       {/* Promo panel */}
-      <div className="relative rounded-2xl overflow-hidden bg-basil-900 flex flex-col justify-end p-5 min-h-[220px]">
+      {/* <div className="relative rounded-2xl overflow-hidden bg-basil-900 flex flex-col justify-end p-5 min-h-[220px]">
         <SafeImage
           src={getCategoryImage("spices")}
           fallbackSrc={getCategoryImageFallback("spices")}
@@ -62,7 +62,7 @@ export default function MegaMenu({ onNavigate }) {
             Shop now <ArrowRight size={14} />
           </Link>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

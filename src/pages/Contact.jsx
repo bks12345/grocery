@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin, Clock, Loader2, CheckCircle2 } from "lucide-react"
 const contactDetails = [
   { icon: Phone, label: "Phone", value: "+91 98765 43210" },
   { icon: Mail, label: "Email", value: "support@daalbhat.com" },
-  { icon: MapPin, label: "Store Address", value: "123 Market Street, Your City" },
+  { icon: MapPin, label: "Store Address", value: "123 Market Street, Sydney" },
   { icon: Clock, label: "Support Hours", value: "Mon–Sat, 9am – 8pm" },
 ];
 
@@ -54,10 +54,7 @@ export default function Contact() {
 
           {/* Map placeholder — swap for a real embed once you have a Maps API key */}
           <div className="card-elevated rounded-2xl overflow-hidden h-48 bg-basil-50 flex items-center justify-center">
-            <div className="text-center text-ink-soft/60">
-              <MapPin size={24} className="mx-auto mb-1" />
-              <p className="text-xs">Map preview — add your Google Maps embed here</p>
-            </div>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d424141.6978944982!2d150.93197474999997!3d-33.84824395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b129838f39a743f%3A0x3017d681632a850!2sSydney%20NSW%2C%20Australia!5e0!3m2!1sen!2snp!4v1784896782864!5m2!1sen!2snp" width="600" height="450" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
           </div>
         </div>
 
