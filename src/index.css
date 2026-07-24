@@ -63,14 +63,14 @@
 }
 
 @layer components {
-  .market-tag1 {
+  .market-tag {
     position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
   }
 
-  .market-tag1::before {
+  .market-tag::before {
     content: "";
     position: absolute;
     left: -6px;
@@ -126,8 +126,4 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-}
-.newsletter{
-  border: 1px solid #f2a93b;
-  color:#fff;
 }

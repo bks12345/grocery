@@ -186,7 +186,7 @@ export default function Navbar() {
 
             <NavLink
               to="/book-goat"
-              className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold text-white shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200"
+              className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200"
             >
               <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/30 group-hover:bg-white/45 transition-colors">
                 <Beef size={14} aria-hidden="true" />

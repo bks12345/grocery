@@ -183,7 +183,7 @@ export default function Home() {
               </div>
 
               {/* Tablet & up: grid */}
-              <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
+              <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {bulkProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -229,7 +229,7 @@ export default function Home() {
             </div>
 
             {/* Tablet & up: grid */}
-            <div className="hidden sm:grid sm:grid-cols-5 gap-5">
+            <div className="hidden sm:grid sm:grid-cols-3 gap-5">
               {comboDeals.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -258,7 +258,7 @@ export default function Home() {
         {featuredLoading || !featured ? (
           <ProductGridSkeleton count={4} />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {featured.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -287,7 +287,7 @@ export default function Home() {
           {bestSellersLoading || !bestSellers ? (
             <ProductGridSkeleton count={4} />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
               {bestSellers.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

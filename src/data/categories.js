@@ -15,13 +15,14 @@ export const categories = [
       "Maize Flour",
       "Millet Flour",
       "Beaten Rice (Chiura)",
+      "Semolina (Suji)",
     ],
   },
   {
     id: "cooking-essentials",
     name: "Cooking Essentials",
     color: "bg-tomato-100",
-    subcategories: ["Cooking Oil", "Mustard Oil", "Salt", "Sugar", "Tea", "Coffee"],
+    subcategories: ["Cooking Oil", "Mustard Oil", "Salt", "Sugar", "Tea", "Coffee", "Honey"],
   },
   {
     id: "spices",
@@ -34,6 +35,10 @@ export const categories = [
       "Chili Powder",
       "Black Pepper",
       "Garam Masala",
+      "Cinnamon",
+      "Cardamom",
+      "Cloves",
+      "Bay Leaf",
     ],
   },
   {
@@ -47,6 +52,9 @@ export const categories = [
       "Biscuits",
       "Bread",
       "Oats",
+      "Cornflakes",
+      "Peanut Butter",
+      "Jam",
     ],
   },
   {
@@ -74,7 +82,10 @@ export const categories = [
     name: "Household & Cleaning",
     color: "bg-mango-100",
     subcategories: [
+      "Dishwashing Liquid",
       "Laundry Detergent",
+      "Toilet Cleaner",
+      "Floor Cleaner",
       "Hand Wash",
       "Soap",
       "Shampoo",

@@ -130,7 +130,7 @@ export default function Offers() {
           {!bulkProducts ? (
             <ProductGridSkeleton count={4} />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
               {bulkProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

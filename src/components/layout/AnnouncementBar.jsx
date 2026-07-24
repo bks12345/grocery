@@ -7,7 +7,7 @@ export default function AnnouncementBar() {
         </p>
         <p className="hidden sm:block shrink-0">
           Need help?{" "}
-          <a href="contact" className="text-mango-400 hover:text-mango-500 font-medium">
+          <a href="#contact" className="text-mango-400 hover:text-mango-500 font-medium">
             Contact support
           </a>
         </p>

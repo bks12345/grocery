@@ -31,7 +31,7 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="bg-basil-900 text-cream/90">
+    <footer className="bg-basil-900 text-cream/90 mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand + newsletter */}
@@ -57,7 +57,7 @@ export default function Footer() {
                 type="email"
                 required
                 placeholder="Your email"
-                className="w-full px-4 py-2 rounded-l-full text-ink text-sm outline-none newsletter"
+                className="w-full px-4 py-2 rounded-l-full text-ink text-sm outline-none"
               />
               <button
                 type="submit"
@@ -112,7 +112,7 @@ export default function Footer() {
               <Mail size={14} /> support@daalbhat.com
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin size={14} /> 123 Market Street, Sydney
+              <MapPin size={14} /> 123 Market Street, Your City
             </span>
           </div>
         </div>
