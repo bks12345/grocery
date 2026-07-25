@@ -155,6 +155,8 @@ export default function BookGoat() {
           weight: "per kg",
           category: "meat-seafood",
           inStock: true,
+          image: `/images/goat-parts/${item.id}.jpg`,
+          fallbackImage: item.image,
         },
         item.quantity
       );

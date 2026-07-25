@@ -59,4 +59,4 @@ export const getCategoryImageFallback = (categoryId) =>
 export const getProductImage = (product) =>
   product.image || categoryImages[product.category];
 export const getProductImageFallback = (product) =>
-  categoryImagesFallback[product.category];
+  categoryImagesFallback[product.category] || product.fallbackImage;

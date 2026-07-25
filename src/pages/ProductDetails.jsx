@@ -136,7 +136,7 @@ export default function ProductDetails() {
 
       <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
         {/* Image */}
-        <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] overflow-hidden shadow-elevated">
+        <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] md:h-[calc(100vh-11rem)] overflow-hidden shadow-elevated md:sticky md:top-40 md:self-start">
           <SafeImage
             src={getProductImage(product)}
             fallbackSrc={getProductImageFallback(product)}
@@ -169,7 +169,7 @@ export default function ProductDetails() {
         </div>
 
         {/* Info */}
-        <div className="flex flex-col">
+        <div className="flex flex-col md:max-h-[calc(100vh-11rem)] md:overflow-y-auto md:overscroll-contain md:pr-3 md:self-start">
           <p className="text-xs uppercase tracking-wide text-ink-soft/70">
             {product.brand}
           </p>
