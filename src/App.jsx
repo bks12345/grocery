@@ -26,6 +26,7 @@ import ReturnPolicy from "./pages/ReturnPolicy";
 import ComingSoon from "./pages/ComingSoon";
 import GroceryEstimate from "./pages/GroceryEstimate";
 import BookGoat from "./pages/BookGoat";
+import OrderFromNepal from "./pages/OrderFromNepal";
 
 // Admin panel (and its recharts dependency) is only downloaded if someone
 // actually navigates to /admin — regular shoppers never pay for its bundle.
@@ -73,6 +74,7 @@ export default function App() {
         <Route path="/return-policy" element={<ReturnPolicy />} />
         <Route path="/grocery-estimate" element={<GroceryEstimate />} />
         <Route path="/book-goat" element={<BookGoat />} />
+        <Route path="/order-from-nepal" element={<OrderFromNepal />} />
 
         <Route
           path="/admin"
