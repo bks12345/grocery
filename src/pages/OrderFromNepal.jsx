@@ -85,9 +85,9 @@ export default function OrderFromNepal() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       {/* Header */}
       <div className="text-center max-w-xl mx-auto">
-        <div className="flex items-center justify-center gap-2.5">
-          <span className="text-3xl sm:text-4xl">🇳🇵</span>
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink">
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <span className="text-2xl sm:text-3xl md:text-4xl">🇳🇵</span>
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold text-ink">
             Order from Nepal
           </h1>
         </div>
@@ -211,11 +211,11 @@ export default function OrderFromNepal() {
                     List each product you'd like us to source, with the quantity you need.
                   </p>
 
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4 sm:gap-3">
                     {products.map((product, index) => (
                       <div
                         key={product.id}
-                        className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[1fr_9rem_auto] gap-3 items-end"
+                        className="flex flex-col gap-3 sm:grid sm:grid-cols-[1fr_9rem_2.75rem] sm:gap-3 sm:items-end"
                       >
                         <Field
                           label={index === 0 ? "Product Name" : `Product Name #${index + 1}`}
@@ -224,22 +224,25 @@ export default function OrderFromNepal() {
                           value={product.name}
                           onChange={updateProduct(product.id, "name")}
                         />
-                        <Field
-                          label="Quantity"
-                          required
-                          placeholder="E.g. 10kg, 2L"
-                          value={product.quantity}
-                          onChange={updateProduct(product.id, "quantity")}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeProductRow(product.id)}
-                          disabled={products.length === 1}
-                          aria-label="Remove product"
-                          className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft/50 hover:text-tomato-500 hover:bg-tomato-100 transition-colors disabled:opacity-0 disabled:pointer-events-none"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex gap-3 items-end sm:contents">
+                          <Field
+                            label="Quantity"
+                            required
+                            placeholder="E.g. 10kg, 2L"
+                            value={product.quantity}
+                            onChange={updateProduct(product.id, "quantity")}
+                            wrapperClassName="flex-1 sm:flex-auto"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeProductRow(product.id)}
+                            disabled={products.length === 1}
+                            aria-label="Remove product"
+                            className="shrink-0 w-11 h-11 flex items-center justify-center rounded-full text-ink-soft/50 hover:text-tomato-500 hover:bg-tomato-100 transition-colors disabled:opacity-0 disabled:pointer-events-none"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -318,7 +321,7 @@ export default function OrderFromNepal() {
                     key={p.id}
                     className="flex items-center justify-between gap-3 text-sm bg-white rounded-xl px-3.5 py-2.5 shadow-soft"
                   >
-                    <span className="text-ink font-medium truncate">{p.name}</span>
+                    <span className="min-w-0 text-ink font-medium truncate">{p.name}</span>
                     {p.quantity && (
                       <span className="shrink-0 text-ink-soft">{p.quantity}</span>
                     )}
@@ -394,16 +397,16 @@ function SectionHeading({ icon: Icon, step, title }) {
   );
 }
 
-function Field({ label, required, ...inputProps }) {
+function Field({ label, required, wrapperClassName = "", ...inputProps }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
+    <label className={`flex flex-col gap-1.5 text-sm min-w-0 ${wrapperClassName}`}>
       <span className="font-medium text-ink-soft">
         {label} {required && <span className="text-tomato-500">*</span>}
       </span>
       <input
         {...inputProps}
         required={required}
-        className="px-4 py-2.5 rounded-full bg-cream shadow-soft focus:shadow-soft-lg outline-none transition-shadow text-ink"
+        className="w-full min-w-0 px-4 py-2.5 rounded-full bg-cream shadow-soft focus:shadow-soft-lg outline-none transition-shadow text-ink"
       />
     </label>
   );

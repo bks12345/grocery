@@ -218,10 +218,10 @@ export default function BookGoat() {
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Parts grid */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
+        {/* 1. Parts grid */}
         <div className="lg:col-span-2">
-          <h2 className="text-sm font-semibold text-ink mb-3">1. Select Goat Parts</h2>
+          <h2 className="text-sm font-semibold text-ink mb-3">1. Select Goat Body Parts</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {goatParts.map((part) => {
               const selected = selections[part.id] != null;
@@ -249,99 +249,78 @@ export default function BookGoat() {
               );
             })}
           </div>
-
-          {/* Quantity editor */}
-          <div className="mt-8">
-            <h2 className="text-sm font-semibold text-ink mb-3">3. Enter Quantity / Weight</h2>
-            {selectionDetails.length === 0 ? (
-              <p className="text-sm text-ink-soft/60 rounded-2xl bg-white shadow-soft p-5 text-center">
-                Select parts above to set their quantity.
-              </p>
-            ) : (
-              <div className="rounded-2xl bg-white shadow-soft overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-ink-soft/60 text-xs uppercase tracking-wide bg-cream">
-                      <th className="px-4 py-3 font-medium">Selected Parts</th>
-                      <th className="px-4 py-3 font-medium hidden sm:table-cell">Unit Price</th>
-                      <th className="px-4 py-3 font-medium">Quantity / Weight</th>
-                      <th className="px-4 py-3 font-medium text-right">Total</th>
-                      <th className="px-2 py-3" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectionDetails.map((item) => (
-                      <tr key={item.id} className="border-t border-basil-50">
-                        <td className="px-4 py-3 text-ink font-medium">{item.name}</td>
-                        <td className="px-4 py-3 text-ink-soft hidden sm:table-cell">
-                          ${item.pricePerKg.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setQuantity(item, item.quantity - goatQtyStep)}
-                              aria-label={`Decrease ${item.name} quantity`}
-                              className="w-7 h-7 flex items-center justify-center rounded-full bg-cream text-basil-600 hover:bg-basil-50"
-                            >
-                              <Minus size={12} />
-                            </button>
-                            <span className="min-w-[2.5rem] text-center font-medium text-ink">{item.quantity}</span>
-                            <span className="text-ink-soft/60 text-xs">kg</span>
-                            <button
-                              type="button"
-                              onClick={() => setQuantity(item, item.quantity + goatQtyStep)}
-                              aria-label={`Increase ${item.name} quantity`}
-                              className="w-7 h-7 flex items-center justify-center rounded-full bg-cream text-basil-600 hover:bg-basil-50"
-                            >
-                              <Plus size={12} />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-ink">
-                          ${item.total.toLocaleString()}
-                        </td>
-                        <td className="px-2 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => removeSelection(item.id)}
-                            aria-label={`Remove ${item.name}`}
-                            className="p-1.5 rounded-full text-tomato-500 hover:bg-tomato-100/50"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-soft/70 border-t border-basil-100 pt-5">
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-basil-600" /> Halal Certified
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Sparkles size={14} className="text-basil-600" /> Farm Fresh
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check size={14} className="text-basil-600" /> Hygienically Packed
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Truck size={14} className="text-basil-600" /> Home Delivery Available
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-basil-600" /> Secure Payment
-            </span>
-          </div>
         </div>
 
-        {/* Selection summary sidebar */}
-        <div className="lg:col-span-1 lg:sticky lg:top-24">
+        {/* Right column: 2. Quantity editor, 3. Selection summary */}
+        <div className="lg:col-span-1 flex flex-col gap-6">
+        <div>
+          <h2 className="text-sm font-semibold text-ink mb-3">2. Enter Quantity / Weight</h2>
+          {selectionDetails.length === 0 ? (
+            <p className="text-sm text-ink-soft/60 rounded-2xl bg-white shadow-soft p-5 text-center">
+              Select parts to set their quantity.
+            </p>
+          ) : (
+            <div className="rounded-2xl bg-white shadow-soft overflow-hidden overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-ink-soft/60 text-xs uppercase tracking-wide bg-cream">
+                    <th className="px-4 py-3 font-medium">Part</th>
+                    <th className="px-4 py-3 font-medium">Qty</th>
+                    <th className="px-2 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectionDetails.map((item) => (
+                    <tr key={item.id} className="border-t border-basil-50">
+                      <td className="px-4 py-3 text-ink font-medium">
+                        {item.name}
+                        <p className="text-xs text-ink-soft/60 font-medium mt-0.5">
+                          ${item.pricePerKg.toLocaleString()}/kg · <span className="font-semibold text-ink">Total ${item.total.toLocaleString()} </span> 
+                        </p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item, item.quantity - goatQtyStep)}
+                            aria-label={`Decrease ${item.name} quantity`}
+                            className="w-7 h-7 shrink-0 flex items-center justify-center rounded-full bg-cream text-basil-600 hover:bg-basil-50"
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span className="min-w-[2rem] text-center font-medium text-ink">{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item, item.quantity + goatQtyStep)}
+                            aria-label={`Increase ${item.name} quantity`}
+                            className="w-7 h-7 shrink-0 flex items-center justify-center rounded-full bg-cream text-basil-600 hover:bg-basil-50"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-2 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => removeSelection(item.id)}
+                          aria-label={`Remove ${item.name}`}
+                          className="p-1.5 rounded-full text-tomato-500 hover:bg-tomato-100/50"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Selection summary */}
+        <div className="lg:sticky lg:top-24">
           <div className="rounded-2xl bg-white shadow-soft p-5">
-            <h3 className="font-display text-base font-semibold text-ink">2. Your Selection</h3>
+            <h3 className="font-display text-base font-semibold text-ink">3. Your Selection</h3>
 
             {selectionDetails.length === 0 ? (
               <p className="text-sm text-ink-soft/60 mt-4">No parts selected yet.</p>
@@ -412,6 +391,26 @@ export default function BookGoat() {
             </button>
           </div>
         </div>
+        </div>
+      </div>
+
+      {/* Trust strip */}
+      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-soft/70 border-t border-basil-100 pt-5">
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-basil-600" /> Halal Certified
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Sparkles size={14} className="text-basil-600" /> Farm Fresh
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Check size={14} className="text-basil-600" /> Hygienically Packed
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Truck size={14} className="text-basil-600" /> Home Delivery Available
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-basil-600" /> Secure Payment
+        </span>
       </div>
     </div>
   );
