@@ -1,33 +1,38 @@
-import { Link } from "react-router-dom";
-import { offersMenu } from "../../data/offers";
+import { Link, useLocation } from "react-router-dom";
+import { offersMenu, isOfferActive, offerBadgeStyles } from "../../data/offers";
 
 export default function OffersDropdown({ onNavigate }) {
+  const { pathname, search } = useLocation();
+
   return (
-    <div className="w-72 p-2">
-      {offersMenu.map((section, i) => (
-        <div
-          key={section.group}
-          className={i > 0 ? "mt-1 pt-2 border-t border-basil-100" : ""}
-        >
-          <p className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft/60">
-            {section.group}
-          </p>
-          <ul>
-            {section.items.map((item) => (
-              <li key={item.label}>
-                <Link
-                  to={item.to}
-                  onClick={onNavigate}
-                  className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm text-ink hover:bg-basil-50 transition-colors"
+    <div className="w-[27rem] p-3">
+      <div className="grid grid-cols-2 gap-1">
+        {offersMenu.map((item) => {
+          const active = isOfferActive(item, pathname, search);
+          return (
+            <Link
+              key={item.label}
+              to={item.to}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                active
+                  ? "bg-basil-50 text-basil-700 font-semibold"
+                  : "text-ink hover:bg-basil-50 hover:text-basil-600"
+              }`}
+            >
+              <span>{item.label}</span>
+              {item.badge && (
+                <span
+                  className={`shrink-0 text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded-full ${offerBadgeStyles[item.badge]}`}
                 >
-                  <span className="font-medium">{item.label}</span>
-                  <span className="text-xs text-ink-soft/60 shrink-0">{item.note}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }

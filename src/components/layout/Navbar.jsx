@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X, ChevronDown, Package, LogOut, Salad, Beef } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useAuth } from "../../context/AuthContext";
 import { categories } from "../../data/categories";
-import { offersMenu } from "../../data/offers";
+import { offersMenu, isOfferActive, offerBadgeStyles } from "../../data/offers";
 import NavDropdown from "./NavDropdown";
 import MegaMenu from "./MegaMenu";
 import OffersDropdown from "./OffersDropdown";
@@ -125,6 +125,10 @@ export default function Navbar() {
   const { items: wishlistItems } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const offersActive = offersMenu.some((item) =>
+    isOfferActive(item, location.pathname, location.search)
+  );
 
   const handleLogout = () => {
     logout();
@@ -149,11 +153,10 @@ export default function Navbar() {
               {(close) => <MegaMenu onNavigate={close} />}
             </NavDropdown>
 
-            {/* Offers — two-level dropdown (temporarily hidden, kept for future use)
-            <NavDropdown label="Offers" panelClassName="left-0">
+            {/* Offers & Deals — flat dropdown, opens on hover or click */}
+            <NavDropdown label="Offers & Deals" isActive={offersActive} panelClassName="left-0">
               {(close) => <OffersDropdown onNavigate={close} />}
             </NavDropdown>
-            */}
 
             {/* About (temporarily hidden, kept for future use)
             {simpleLinks.map((link) => (
@@ -313,31 +316,34 @@ export default function Navbar() {
               </div>
             </MobileAccordion>
 
-            {/* Offers accordion: group -> items (temporarily hidden, kept for future use)
-            <MobileAccordion title="Offers">
-              <div className="flex flex-col gap-3">
-                {offersMenu.map((section) => (
-                  <div key={section.group}>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft/60">
-                      {section.group}
-                    </p>
-                    <div className="mt-1 flex flex-col gap-1">
-                      {section.items.map((item) => (
-                        <Link
-                          key={item.label}
-                          to={item.to}
-                          onClick={() => setMenuOpen(false)}
-                          className="text-sm text-ink"
+            {/* Offers accordion: flat list with badges */}
+            <MobileAccordion title="Offers & Deals">
+              <div className="flex flex-col">
+                {offersMenu.map((item) => {
+                  const active = isOfferActive(item, location.pathname, location.search);
+                  return (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      onClick={() => setMenuOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center justify-between gap-2 py-2.5 text-sm transition-colors ${
+                        active ? "text-basil-700 font-semibold" : "text-ink hover:text-basil-600"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <span
+                          className={`shrink-0 text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded-full ${offerBadgeStyles[item.badge]}`}
                         >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             </MobileAccordion>
-            */}
 
             <button
               type="button"

@@ -23,6 +23,17 @@ const defaultFilters = {
   bulkOnly: false,
   comboOnly: false,
   festivalSaleOnly: false,
+  bestSellerOnly: false,
+  newOnly: false,
+  featuredOnly: false,
+  discountOnly: false,
+};
+
+const promoLabels = {
+  "flash-sale": "Flash Sale",
+  "limited-time": "Limited-Time Deals",
+  "weekly-deals": "Weekly Deals",
+  clearance: "Clearance Sale",
 };
 
 const sortOptions = [
@@ -42,9 +53,14 @@ export default function Shop() {
     bulkOnly: searchParams.get("bulk") === "true",
     comboOnly: searchParams.get("combo") === "true",
     festivalSaleOnly: searchParams.get("sale") === "true",
+    bestSellerOnly: searchParams.get("bestseller") === "true",
+    newOnly: searchParams.get("new") === "true",
+    featuredOnly: searchParams.get("featured") === "true",
+    discountOnly: searchParams.get("discount") === "true",
   });
   const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [sort, setSort] = useState("relevance");
+  const [sort, setSort] = useState(() => searchParams.get("sort") || "relevance");
+  const [promo, setPromo] = useState(() => searchParams.get("promo") || "");
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState(
@@ -100,8 +116,14 @@ export default function Shop() {
       bulkOnly: searchParams.get("bulk") === "true",
       comboOnly: searchParams.get("combo") === "true",
       festivalSaleOnly: searchParams.get("sale") === "true",
+      bestSellerOnly: searchParams.get("bestseller") === "true",
+      newOnly: searchParams.get("new") === "true",
+      featuredOnly: searchParams.get("featured") === "true",
+      discountOnly: searchParams.get("discount") === "true",
     }));
     setSearch(searchParams.get("search") || "");
+    setSort(searchParams.get("sort") || "relevance");
+    setPromo(searchParams.get("promo") || "");
   }, [searchParams]);
 
   useEffect(() => setPage(1), [filters, search, sort]);
@@ -112,32 +134,57 @@ export default function Shop() {
 
   const activeCategory = categories?.find((c) => c.id === filters.category);
 
+  const pageTitle =
+    activeCategory?.name ||
+    (filters.bestSellerOnly && "Best Sellers") ||
+    (filters.newOnly && "Latest Products") ||
+    (filters.featuredOnly && "Featured Products") ||
+    (filters.bulkOnly && "Family Bulk Packs") ||
+    (filters.comboOnly && "Combo Deals") ||
+    (filters.festivalSaleOnly && "Festival Offers") ||
+    (filters.discountOnly && (promoLabels[promo] || "Deals & Discounts")) ||
+    "Shop All Products";
+
+  // Single source of truth for turning the current view (filters + search +
+  // sort + promo label) into a URL query string, used by every handler below
+  // so none of them can silently drop a param the others rely on.
+  const buildParams = ({ filters: f, search: s, sort: so, promo: pr }) => {
+    const params = {};
+    if (f.category) params.category = f.category;
+    if (f.bulkOnly) params.bulk = "true";
+    if (f.comboOnly) params.combo = "true";
+    if (f.festivalSaleOnly) params.sale = "true";
+    if (f.bestSellerOnly) params.bestseller = "true";
+    if (f.newOnly) params.new = "true";
+    if (f.featuredOnly) params.featured = "true";
+    if (f.discountOnly) params.discount = "true";
+    if (pr) params.promo = pr;
+    if (s.trim()) params.search = s.trim();
+    if (so && so !== "relevance") params.sort = so;
+    return params;
+  };
+
   const handleClearFilters = () => {
     setFilters(defaultFilters);
     setSearch("");
+    setSort("relevance");
+    setPromo("");
     setSearchParams({});
   };
 
   const handleFiltersChange = (next) => {
     setFilters(next);
-    const params = {};
-    if (next.category) params.category = next.category;
-    if (next.bulkOnly) params.bulk = "true";
-    if (next.comboOnly) params.combo = "true";
-    if (next.festivalSaleOnly) params.sale = "true";
-    if (search.trim()) params.search = search.trim();
-    setSearchParams(params);
+    setSearchParams(buildParams({ filters: next, search, sort, promo }));
   };
 
   const handleSearchChange = (value) => {
     setSearch(value);
-    const params = {};
-    if (filters.category) params.category = filters.category;
-    if (filters.bulkOnly) params.bulk = "true";
-    if (filters.comboOnly) params.combo = "true";
-    if (filters.festivalSaleOnly) params.sale = "true";
-    if (value.trim()) params.search = value.trim();
-    setSearchParams(params);
+    setSearchParams(buildParams({ filters, search: value, sort, promo }));
+  };
+
+  const handleSortChange = (value) => {
+    setSort(value);
+    setSearchParams(buildParams({ filters, search, sort: value, promo }));
   };
 
   return (
@@ -145,7 +192,7 @@ export default function Shop() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-3xl font-semibold text-ink">
-          {activeCategory ? activeCategory.name : "Shop All Products"}
+          {pageTitle}
         </h1>
         <p className="text-ink-soft text-sm mt-1">
           {loading
@@ -281,7 +328,7 @@ export default function Shop() {
               <select
                 id="sort"
                 value={sort}
-                onChange={(e) => setSort(e.target.value)}
+                onChange={(e) => handleSortChange(e.target.value)}
                 className="text-sm shadow-soft rounded-full px-3 py-2 outline-none focus:shadow-soft-lg transition-shadow bg-white"
               >
                 {sortOptions.map((opt) => (

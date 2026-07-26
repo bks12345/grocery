@@ -19,6 +19,12 @@ const delay = (ms = SIMULATED_DELAY_MS) => new Promise((r) => setTimeout(r, ms))
  * @param {number} [params.minRating]
  * @param {boolean} [params.inStockOnly]
  * @param {boolean} [params.bulkOnly]
+ * @param {boolean} [params.comboOnly]
+ * @param {boolean} [params.festivalSaleOnly]
+ * @param {boolean} [params.bestSellerOnly]
+ * @param {boolean} [params.newOnly]
+ * @param {boolean} [params.featuredOnly]
+ * @param {boolean} [params.discountOnly]
  * @param {string} [params.sort] - 'relevance' | 'price-low-high' | 'price-high-low' | 'popularity' | 'latest' | 'best-selling'
  * @param {number} [params.page] - 1-indexed
  * @param {number} [params.pageSize]
@@ -35,6 +41,10 @@ export async function queryProducts({
   bulkOnly = false,
   comboOnly = false,
   festivalSaleOnly = false,
+  bestSellerOnly = false,
+  newOnly = false,
+  featuredOnly = false,
+  discountOnly = false,
   sort = "relevance",
   page = 1,
   pageSize = 8,
@@ -50,6 +60,10 @@ export async function queryProducts({
     if (bulkOnly && !p.isBulk) return false;
     if (comboOnly && !p.isCombo) return false;
     if (festivalSaleOnly && !p.isFestivalSale) return false;
+    if (bestSellerOnly && !p.isBestSeller) return false;
+    if (newOnly && !p.isNew) return false;
+    if (featuredOnly && !p.isFeatured) return false;
+    if (discountOnly && !(p.oldPrice && p.oldPrice > p.price)) return false;
     if (search.trim()) {
       const term = search.trim().toLowerCase();
       const haystack = `${p.name} ${p.brand} ${p.category}`.toLowerCase();

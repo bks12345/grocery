@@ -71,6 +71,10 @@ export default function Home() {
     () => productService.getComboDeals(),
     []
   );
+  const { data: latestProducts, loading: latestLoading } = useAsync(
+    () => productService.queryProducts({ sort: "latest", pageSize: 6 }).then((r) => r.items),
+    []
+  );
 
   return (
     <div>
@@ -248,7 +252,7 @@ export default function Home() {
             <p className="text-ink-soft text-sm mt-1">Hand-picked favorites from the store.</p>
           </div>
           <Link
-            to="/shop"
+            to="/shop?featured=true"
             className="group hidden sm:flex items-center gap-1 text-sm font-medium text-basil-600 hover:text-basil-700"
           >
             View all <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
@@ -266,6 +270,34 @@ export default function Home() {
         )}
       </section>
 
+      {/* Latest products */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">
+              Latest Products
+            </h2>
+            <p className="text-ink-soft text-sm mt-1">Freshly added to the store.</p>
+          </div>
+          <Link
+            to="/shop?sort=latest"
+            className="group hidden sm:flex items-center gap-1 text-sm font-medium text-basil-600 hover:text-basil-700"
+          >
+            View all <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+
+        {latestLoading || !latestProducts ? (
+          <ProductGridSkeleton count={4} />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+            {latestProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Best sellers */}
       <section className="bg-gradient-to-b from-mango-100/50 to-mango-100/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -277,7 +309,7 @@ export default function Home() {
               <p className="text-ink-soft text-sm mt-1">Most loved by our customers.</p>
             </div>
             <Link
-              to="/shop"
+              to="/shop?bestseller=true"
               className="group hidden sm:flex items-center gap-1 text-sm font-medium text-basil-600 hover:text-basil-700"
             >
               View all <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />

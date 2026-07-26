@@ -63,7 +63,7 @@ export default function NavDropdown({ label, isActive, panelClassName = "", hide
 
       {open && (
         <div className={`absolute top-full pt-3 z-50 ${panelClassName}`}>
-          <div className="bg-white rounded-2xl shadow-elevated overflow-y-auto overflow-x-hidden overscroll-contain max-h-[min(32rem,calc(100vh-6rem))]">
+          <div className="animate-dropdown-in bg-white rounded-2xl shadow-elevated overflow-y-auto overflow-x-hidden overscroll-contain max-h-[min(32rem,calc(100vh-6rem))]">
             {children(() => setOpen(false))}
           </div>
         </div>

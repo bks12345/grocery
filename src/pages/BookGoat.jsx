@@ -274,8 +274,8 @@ export default function BookGoat() {
                     <tr key={item.id} className="border-t border-basil-50">
                       <td className="px-4 py-3 text-ink font-medium">
                         {item.name}
-                        <p className="text-xs text-ink-soft/60 font-medium mt-0.5">
-                          ${item.pricePerKg.toLocaleString()}/kg · <span className="font-semibold text-ink">Total ${item.total.toLocaleString()} </span> 
+                        <p className="text-xs text-ink-soft/60 font-normal mt-0.5">
+                          ${item.pricePerKg.toLocaleString()}/kg · ${item.total.toLocaleString()} total
                         </p>
                       </td>
                       <td className="px-4 py-3">

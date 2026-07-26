@@ -11,9 +11,14 @@ import {
   ShoppingCart,
   Lightbulb,
   MessageCircleQuestion,
+  ArrowRight,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import CustomizeGroceryModal from "../components/ui/CustomizeGroceryModal";
+import ProductCard from "../components/ui/ProductCard";
+import { ProductGridSkeleton } from "../components/ui/Skeletons";
+import { useAsync } from "../hooks/useAsync";
+import * as productService from "../services/productService";
 
 const foodCategoryLabels = {
   vegetarian: "Vegetarian",
@@ -29,6 +34,10 @@ export default function GroceryEstimate() {
   const [tab, setTab] = useState("list"); // 'list' | 'breakdown'
   const [editOpen, setEditOpen] = useState(false);
   const [addedAll, setAddedAll] = useState(false);
+  const { data: comboDeals, loading: comboLoading } = useAsync(
+    () => productService.getComboDeals(),
+    []
+  );
 
   // Guard: someone landed here directly (refresh, shared link) without
   // having gone through the modal — send them back to build an estimate.
@@ -294,6 +303,39 @@ export default function GroceryEstimate() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Combo packs */}
+      <div className="mt-12">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <span className="text-basil-600 text-xs font-semibold uppercase tracking-wide">
+              Bundle & save
+            </span>
+            <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mt-1">
+              Combo Packs
+            </h2>
+            <p className="text-ink-soft text-sm mt-1 max-w-md">
+              Round out your estimate with these bundled deals.
+            </p>
+          </div>
+          <Link
+            to="/shop?combo=true"
+            className="group hidden sm:flex items-center gap-1 text-sm font-medium text-basil-600 hover:text-basil-700 shrink-0"
+          >
+            View all <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+
+        {comboLoading || !comboDeals ? (
+          <ProductGridSkeleton count={4} />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            {comboDeals.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
 
       {editOpen && <CustomizeGroceryModal onClose={() => setEditOpen(false)} />}
