@@ -221,7 +221,7 @@ export default function BookGoat() {
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
         {/* 1. Parts grid */}
         <div className="lg:col-span-2">
-          <h2 className="text-sm font-semibold text-ink mb-3">1. Select Goat Body Parts</h2>
+          <h2 className="text-md font-semibold text-ink mb-3">1. Select Goat Body Parts</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {goatParts.map((part) => {
               const selected = selections[part.id] != null;
@@ -254,7 +254,7 @@ export default function BookGoat() {
         {/* Right column: 2. Quantity editor, 3. Selection summary */}
         <div className="lg:col-span-1 flex flex-col gap-6">
         <div>
-          <h2 className="text-sm font-semibold text-ink mb-3">2. Enter Quantity / Weight</h2>
+          <h2 className="text-md font-semibold text-ink mb-3">2. Enter Quantity / Weight</h2>
           {selectionDetails.length === 0 ? (
             <p className="text-sm text-ink-soft/60 rounded-2xl bg-white shadow-soft p-5 text-center">
               Select parts to set their quantity.
@@ -275,7 +275,7 @@ export default function BookGoat() {
                       <td className="px-4 py-3 text-ink font-medium">
                         {item.name}
                         <p className="text-xs text-ink-soft/60 font-normal mt-0.5">
-                          ${item.pricePerKg.toLocaleString()}/kg · ${item.total.toLocaleString()} total
+                          ${item.pricePerKg.toLocaleString()}/kg · <span className="font-semibold text-ink mb-3">Total ${item.total.toLocaleString()} </span>
                         </p>
                       </td>
                       <td className="px-4 py-3">
@@ -320,7 +320,7 @@ export default function BookGoat() {
         {/* 3. Selection summary */}
         <div className="lg:sticky lg:top-24">
           <div className="rounded-2xl bg-white shadow-soft p-5">
-            <h3 className="font-display text-base font-semibold text-ink">3. Your Selection</h3>
+            <h3 className="font-display text-md text-base font-semibold text-ink">3. Your Selection</h3>
 
             {selectionDetails.length === 0 ? (
               <p className="text-sm text-ink-soft/60 mt-4">No parts selected yet.</p>

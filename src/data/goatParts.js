@@ -27,15 +27,15 @@ export const goatParts = [
   { id: "g_loin", name: "Loin", pricePerKg: 1150, defaultUnit: "kg", minQty: 0.5, icon: "drumstick", group: "cut", rotate: -15, image: wikimedia("Raw Meat.jpg") },
   { id: "g_neck", name: "Neck", pricePerKg: 800, defaultUnit: "kg", minQty: 0.5, icon: "drumstick", group: "cut", rotate: 15, image: wikimedia("FoodMeat.jpg") },
   { id: "g_liver", name: "Liver", pricePerKg: 650, defaultUnit: "kg", minQty: 0.5, icon: "droplet", group: "organ", rotate: 0, image: wikimedia("Raw liver.jpg") },
-  { id: "g_heart", name: "Heart", pricePerKg: 600, defaultUnit: "kg", minQty: 0.5, icon: "heart", group: "organ", rotate: 0 },
-  { id: "g_kidney", name: "Kidney", pricePerKg: 600, defaultUnit: "kg", minQty: 0.5, icon: "bean", group: "organ", rotate: 0 },
-  { id: "g_brain", name: "Brain", pricePerKg: 500, defaultUnit: "kg", minQty: 0.5, icon: "brain", group: "organ", rotate: 0 },
-  { id: "g_head", name: "Head", pricePerKg: 700, defaultUnit: "kg", minQty: 0.5, icon: "skull", group: "extra", rotate: 0 },
-  { id: "g_trotters", name: "Trotters", pricePerKg: 550, defaultUnit: "kg", minQty: 0.5, icon: "footprints", group: "extra", rotate: 0 },
-  { id: "g_intestine", name: "Intestine", pricePerKg: 450, defaultUnit: "kg", minQty: 0.5, icon: "waves", group: "extra", rotate: 0 },
-  { id: "g_fat", name: "Fat", pricePerKg: 400, defaultUnit: "kg", minQty: 0.5, icon: "droplets", group: "extra", rotate: 0 },
-  { id: "g_lung", name: "Lung", pricePerKg: 450, defaultUnit: "kg", minQty: 0.5, icon: "wind", group: "organ", rotate: 0 },
-  { id: "g_tail", name: "Tail", pricePerKg: 300, defaultUnit: "kg", minQty: 0.5, icon: "shell", group: "extra", rotate: 0 },
+  { id: "g_heart", name: "Heart", pricePerKg: 600, defaultUnit: "kg", minQty: 0.5, icon: "heart", group: "organ", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_kidney", name: "Kidney", pricePerKg: 600, defaultUnit: "kg", minQty: 0.5, icon: "bean", group: "organ", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_brain", name: "Brain", pricePerKg: 500, defaultUnit: "kg", minQty: 0.5, icon: "brain", group: "organ", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_head", name: "Head", pricePerKg: 700, defaultUnit: "kg", minQty: 0.5, icon: "skull", group: "extra", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_trotters", name: "Trotters", pricePerKg: 550, defaultUnit: "kg", minQty: 0.5, icon: "footprints", group: "extra", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_intestine", name: "Intestine", pricePerKg: 450, defaultUnit: "kg", minQty: 0.5, icon: "waves", group: "extra", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_fat", name: "Fat", pricePerKg: 400, defaultUnit: "kg", minQty: 0.5, icon: "droplets", group: "extra", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_lung", name: "Lung", pricePerKg: 450, defaultUnit: "kg", minQty: 0.5, icon: "wind", group: "organ", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
+  { id: "g_tail", name: "Tail", pricePerKg: 300, defaultUnit: "kg", minQty: 0.5, icon: "shell", group: "extra", rotate: 0 , image: wikimedia("Raw Meat.jpg")},
 ];
 
 export const goatQtyStep = 0.5;
@@ -43,22 +43,22 @@ export const goatQtyStep = 0.5;
 export const goatHeroImage = wikimedia("Goat.jpg", 1400);
 
 export const goatFeatureImages = [
-  {
-    id: "healthy",
-    title: "100% Healthy Goats",
-    subtitle: "Vet-checked before every booking",
-    image: wikimedia("Beautiful Goat (193265569).jpeg"),
-  },
-  {
-    id: "farm",
-    title: "Farm Raised",
-    subtitle: "Open-grazed, free-range herds",
-    image: wikimedia("Goat 01.jpg"),
-  },
-  {
-    id: "fresh",
-    title: "Fresh & Halal Cut",
-    subtitle: "Prepared to order, same day",
-    image: wikimedia("Goat.jpeg"),
-  },
+  // {
+  //   id: "healthy",
+  //   title: "100% Healthy Goats",
+  //   subtitle: "Vet-checked before every booking",
+  //   image: wikimedia("Beautiful Goat (193265569).jpeg"),
+  // },
+  // {
+  //   id: "farm",
+  //   title: "Farm Raised",
+  //   subtitle: "Open-grazed, free-range herds",
+  //   image: wikimedia("Goat 01.jpg"),
+  // },
+  // {
+  //   id: "fresh",
+  //   title: "Fresh & Halal Cut",
+  //   subtitle: "Prepared to order, same day",
+  //   image: wikimedia("Goat.jpeg"),
+  // },
 ];
