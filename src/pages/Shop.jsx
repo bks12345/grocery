@@ -34,6 +34,7 @@ const promoLabels = {
   "limited-time": "Limited-Time Deals",
   "weekly-deals": "Weekly Deals",
   clearance: "Clearance Sale",
+  "half-price": "Half Price Deals",
 };
 
 const sortOptions = [

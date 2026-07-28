@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Truck, ShieldCheck, RotateCcw, Package } from "lucide-react";
+import { ArrowRight, Users, Tags, BadgePercent, Sparkles, Star } from "lucide-react";
 import * as productService from "../services/productService";
 import * as categoryService from "../services/categoryService";
 import { useAsync } from "../hooks/useAsync";
@@ -45,11 +45,42 @@ const heroSlides = [
   },
 ];
 
-const trustPoints = [
-  { icon: Truck, label: "Fast Delivery", detail: "Order before 6pm for same-day delivery" },
-  { icon: ShieldCheck, label: "Secure Payment", detail: "COD, cards & wallets supported" },
-  { icon: RotateCcw, label: "Easy Returns", detail: "7-day hassle-free returns" },
-  { icon: Package, label: "Bulk Savings", detail: "Family packs at lower per-kg prices" },
+const offerButtons = [
+  {
+    icon: Users,
+    label: "Family Bulk Pack",
+    to: "/shop?bulk=true",
+    iconBg: "bg-mango-100",
+    iconColor: "text-mango-600",
+  },
+  {
+    icon: Tags,
+    label: "Combo Deals",
+    to: "/shop?combo=true",
+    iconBg: "bg-basil-50",
+    iconColor: "text-basil-600",
+  },
+  {
+    icon: BadgePercent,
+    label: "1/2 Half Price Deals",
+    to: "/shop?discount=true&promo=half-price",
+    iconBg: "bg-tomato-100",
+    iconColor: "text-tomato-600",
+  },
+  {
+    icon: Sparkles,
+    label: "Latest Product",
+    to: "/shop?new=true",
+    iconBg: "bg-basil-100",
+    iconColor: "text-basil-700",
+  },
+  {
+    icon: Star,
+    label: "Best Seller",
+    to: "/shop?bestseller=true",
+    iconBg: "bg-mango-100",
+    iconColor: "text-mango-600",
+  },
 ];
 
 export default function Home() {
@@ -83,22 +114,30 @@ export default function Home() {
       {/* Hero */}
       <HeroSlider slides={heroSlides} />
 
-      {/* Trust bar */}
+      {/* Offer shortcuts */}
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 pb-2">
-          <div className="card-elevated rounded-3xl grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8">
-            {trustPoints.map(({ icon: Icon, label, detail }) => (
-              <div key={label} className="flex items-start gap-3">
-                <div className="w-10 h-10 shrink-0 rounded-full bg-basil-50 flex items-center justify-center">
-                  <Icon size={18} className="text-basil-600" />
+          <nav
+            aria-label="Shop by offer"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"
+          >
+            {offerButtons.map(({ icon: Icon, label, to, iconBg, iconColor }) => (
+              <Link
+                key={label}
+                to={to}
+                className="card-elevated group flex flex-col items-center gap-3 rounded-3xl p-5 sm:p-6 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-basil-600"
+              >
+                <div
+                  className={`w-12 h-12 shrink-0 rounded-full ${iconBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}
+                >
+                  <Icon size={20} className={iconColor} />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-ink">{label}</p>
-                  <p className="text-xs text-ink-soft/70 mt-0.5">{detail}</p>
-                </div>
-              </div>
+                <span className="text-sm font-semibold text-ink group-hover:text-basil-600 transition-colors">
+                  {label}
+                </span>
+              </Link>
             ))}
-          </div>
+          </nav>
         </div>
       </section>
 
@@ -138,7 +177,7 @@ export default function Home() {
           renderItem={(cat) => (
             <Link
               to={`/shop?category=${cat.id}`}
-              className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl h-full pt-3"
+              className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl h-full"
             >
               <div className="w-14 h-14 rounded-full overflow-hidden shadow-soft">
                 <SafeImage
