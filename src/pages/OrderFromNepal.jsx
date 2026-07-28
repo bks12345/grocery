@@ -172,14 +172,14 @@ export default function OrderFromNepal() {
                     </span>
                     <textarea
                       required
-                      rows={2}
+                      rows={1}
                       placeholder="Enter your full delivery address"
                       value={address.fullAddress}
                       onChange={updateAddress("fullAddress")}
                       className="px-4 py-3 rounded-2xl bg-cream shadow-soft focus:shadow-soft-lg outline-none transition-shadow text-ink resize-none"
                     />
                   </label>
-                  <div className="grid sm:grid-cols-3 gap-4">
+                  {/* <div className="grid sm:grid-cols-3 gap-4">
                     <Field
                       label="Province"
                       required
@@ -201,7 +201,7 @@ export default function OrderFromNepal() {
                       value={address.city}
                       onChange={updateAddress("city")}
                     />
-                  </div>
+                  </div> */}
                 </section>
 
                 {/* 3. Product Information */}

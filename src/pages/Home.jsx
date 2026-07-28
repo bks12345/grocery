@@ -126,19 +126,19 @@ export default function Home() {
         <Slider
           items={categories || []}
           loading={categoriesLoading || !categories}
-          skeletonCount={8}
+          skeletonCount={6}
           getKey={(cat) => cat.id}
           ariaLabel="Shop by category"
           autoplay
-          autoplayInterval={3500}
+          autoplayInterval={1000}
           loop
           gapClassName="gap-4"
-          slideClassName="basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] md:basis-[calc((100%-3rem)/4)] lg:basis-[calc((100%-5rem)/6)] xl:basis-[calc((100%-7rem)/8)]"
+          slideClassName="basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] md:basis-[calc((100%-3rem)/4)] lg:basis-[calc((100%-5rem)/6)]"
           renderSkeleton={() => <CategoryCardSkeleton />}
           renderItem={(cat) => (
             <Link
               to={`/shop?category=${cat.id}`}
-              className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl h-full"
+              className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl h-full pt-3"
             >
               <div className="w-14 h-14 rounded-full overflow-hidden shadow-soft">
                 <SafeImage
