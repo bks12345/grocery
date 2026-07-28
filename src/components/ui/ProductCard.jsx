@@ -77,7 +77,7 @@ export default function ProductCard({ product }) {
       </Link>
 
       {/* Info */}
-      <div className="flex flex-col gap-2 p-4 flex-1">
+      <div className="flex flex-col gap-2 p-4 pb-5 flex-1">
         <p className="text-xs uppercase tracking-wide text-ink-soft/70">
           {product.brand}
         </p>
@@ -104,7 +104,7 @@ export default function ProductCard({ product }) {
           </p>
         )}
 
-        <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+        <div className="mt-auto pt-3 flex items-center justify-between gap-3">
           {product.isBookable ? (
             <>
               <div className="flex flex-col">
