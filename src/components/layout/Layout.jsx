@@ -4,7 +4,6 @@ import AnnouncementBar from "./AnnouncementBar";
 import Navbar from "./Navbar";
 import CategoryBar from "./CategoryBar";
 import Footer from "./Footer";
-import FloatingOrderButton from "./FloatingOrderButton";
 
 export default function Layout() {
   const headerRef = useRef(null);
@@ -33,7 +32,6 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <FloatingOrderButton />
     </div>
   );
 }

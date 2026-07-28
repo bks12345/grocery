@@ -20,7 +20,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="card-elevated group relative flex flex-col rounded-3xl overflow-hidden">
+    <div className="card-elevated group relative flex flex-col h-full rounded-3xl overflow-hidden">
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
         {/* {product.isBookable && (

@@ -8,7 +8,9 @@ import ProductCard from "../components/ui/ProductCard";
 import FestivalSale from "../components/ui/FestivalSale";
 import SafeImage from "../components/ui/SafeImage";
 import HeroSlider from "../components/ui/HeroSlider";
-import { ProductGridSkeleton, CategoryCardSkeleton } from "../components/ui/Skeletons";
+import { ProductGridSkeleton, CategoryCardSkeleton, ProductCardSkeleton } from "../components/ui/Skeletons";
+import Slider from "../components/ui/Slider";
+import ScrollReveal from "../components/ui/ScrollReveal";
 
 const heroSlides = [
   {
@@ -104,6 +106,7 @@ export default function Home() {
       <FestivalSale />
 
       {/* Categories */}
+      <ScrollReveal>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
@@ -120,31 +123,40 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {categoriesLoading || !categories
-            ? Array.from({ length: 6 }).map((_, i) => <CategoryCardSkeleton key={i} />)
-            : categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/shop?category=${cat.id}`}
-                  className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl"
-                >
-                  <div className="w-14 h-14 rounded-full overflow-hidden shadow-soft">
-                    <SafeImage
-                      src={getCategoryImage(cat.id)}
-                      fallbackSrc={getCategoryImageFallback(cat.id)}
-                      alt={cat.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      fallbackClassName={`w-full h-full ${cat.color}`}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-ink text-center">
-                    {cat.name}
-                  </span>
-                </Link>
-              ))}
-        </div>
+        <Slider
+          items={categories || []}
+          loading={categoriesLoading || !categories}
+          skeletonCount={8}
+          getKey={(cat) => cat.id}
+          ariaLabel="Shop by category"
+          autoplay
+          autoplayInterval={3500}
+          loop
+          gapClassName="gap-4"
+          slideClassName="basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] md:basis-[calc((100%-3rem)/4)] lg:basis-[calc((100%-5rem)/6)] xl:basis-[calc((100%-7rem)/8)]"
+          renderSkeleton={() => <CategoryCardSkeleton />}
+          renderItem={(cat) => (
+            <Link
+              to={`/shop?category=${cat.id}`}
+              className="card-elevated group flex flex-col items-center gap-3 p-5 rounded-3xl h-full"
+            >
+              <div className="w-14 h-14 rounded-full overflow-hidden shadow-soft">
+                <SafeImage
+                  src={getCategoryImage(cat.id)}
+                  fallbackSrc={getCategoryImageFallback(cat.id)}
+                  alt={cat.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  fallbackClassName={`w-full h-full ${cat.color}`}
+                />
+              </div>
+              <span className="text-sm font-medium text-ink text-center">
+                {cat.name}
+              </span>
+            </Link>
+          )}
+        />
       </section>
+      </ScrollReveal>
 
       {/* Bulk deals — highlighted per spec */}
       <section className="relative bg-gradient-to-br from-basil-900 via-basil-900 to-basil-700 overflow-hidden">
@@ -198,6 +210,7 @@ export default function Home() {
       </section>
 
       {/* Combo deals */}
+      <ScrollReveal>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
@@ -219,30 +232,25 @@ export default function Home() {
           </Link>
         </div>
 
-        {comboLoading || !comboDeals ? (
-          <ProductGridSkeleton count={3} />
-        ) : (
-          <>
-            {/* Mobile: horizontal scroll-snap slider */}
-            <div className="sm:hidden -mx-4 px-4 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 no-scrollbar">
-              {comboDeals.map((product) => (
-                <div key={product.id} className="snap-start shrink-0 w-[78%]">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-
-            {/* Tablet & up: grid */}
-            <div className="hidden sm:grid sm:grid-cols-5 gap-5">
-              {comboDeals.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </>
-        )}
+        <Slider
+          items={comboDeals || []}
+          loading={comboLoading || !comboDeals}
+          skeletonCount={4}
+          ariaLabel="Combo deals"
+          autoplay
+          autoplayInterval={4000}
+          loop
+          showDots
+          gapClassName="gap-5"
+          slideClassName="basis-full sm:basis-[calc((100%-1.25rem)/2)] md:basis-[calc((100%-2.5rem)/3)] lg:basis-[calc((100%-3.75rem)/4)]"
+          renderSkeleton={() => <ProductCardSkeleton />}
+          renderItem={(product) => <ProductCard product={product} />}
+        />
       </section>
+      </ScrollReveal>
 
       {/* Featured products */}
+      <ScrollReveal>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
@@ -260,17 +268,19 @@ export default function Home() {
         </div>
 
         {featuredLoading || !featured ? (
-          <ProductGridSkeleton count={4} />
+          <ProductGridSkeleton count={10} />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-            {featured.map((product) => (
+            {featured.slice(0, 10).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
       </section>
+      </ScrollReveal>
 
       {/* Latest products */}
+      <ScrollReveal>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
@@ -287,16 +297,21 @@ export default function Home() {
           </Link>
         </div>
 
-        {latestLoading || !latestProducts ? (
-          <ProductGridSkeleton count={4} />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-            {latestProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+        <Slider
+          items={latestProducts || []}
+          loading={latestLoading || !latestProducts}
+          skeletonCount={4}
+          ariaLabel="Latest products"
+          autoplay
+          autoplayInterval={3000}
+          loop
+          gapClassName="gap-5"
+          slideClassName="basis-full sm:basis-[calc((100%-1.25rem)/2)] md:basis-[calc((100%-2.5rem)/3)] lg:basis-[calc((100%-3.75rem)/4)]"
+          renderSkeleton={() => <ProductCardSkeleton />}
+          renderItem={(product) => <ProductCard product={product} />}
+        />
       </section>
+      </ScrollReveal>
 
       {/* Best sellers */}
       <section className="bg-gradient-to-b from-mango-100/50 to-mango-100/20">

@@ -11,12 +11,12 @@ import {
   ShoppingCart,
   Lightbulb,
   MessageCircleQuestion,
-  ArrowRight,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import CustomizeGroceryModal from "../components/ui/CustomizeGroceryModal";
 import ProductCard from "../components/ui/ProductCard";
-import { ProductGridSkeleton } from "../components/ui/Skeletons";
+import { ProductCardSkeleton } from "../components/ui/Skeletons";
+import Slider from "../components/ui/Slider";
 import { useAsync } from "../hooks/useAsync";
 import * as productService from "../services/productService";
 
@@ -233,6 +233,32 @@ export default function GroceryEstimate() {
 
         {/* Sidebar */}
         <div className="lg:col-span-1 flex flex-col gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-base font-semibold text-ink">
+                Recommended Combo Pack
+              </h3>
+              <Link
+                to="/shop?combo=true"
+                className="text-xs font-medium text-basil-600 hover:text-basil-700 shrink-0"
+              >
+                View all
+              </Link>
+            </div>
+            <Slider
+              items={comboDeals || []}
+              loading={comboLoading || !comboDeals}
+              skeletonCount={1}
+              ariaLabel="Recommended combo pack"
+              autoplay
+              autoplayInterval={3500}
+              loop
+              slideClassName="basis-full"
+              renderSkeleton={() => <ProductCardSkeleton />}
+              renderItem={(product) => <ProductCard product={product} />}
+            />
+          </div>
+
           <div className="rounded-2xl bg-white shadow-soft p-5">
             <h3 className="font-display text-base font-semibold text-ink">Summary</h3>
             <dl className="mt-4 flex flex-col gap-3 text-sm">
@@ -303,39 +329,6 @@ export default function GroceryEstimate() {
             </Link>
           </div>
         </div>
-      </div>
-
-      {/* Combo packs */}
-      <div className="mt-12">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <span className="text-basil-600 text-xs font-semibold uppercase tracking-wide">
-              Bundle & save
-            </span>
-            <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mt-1">
-              Combo Packs
-            </h2>
-            <p className="text-ink-soft text-sm mt-1 max-w-md">
-              Round out your estimate with these bundled deals.
-            </p>
-          </div>
-          <Link
-            to="/shop?combo=true"
-            className="group hidden sm:flex items-center gap-1 text-sm font-medium text-basil-600 hover:text-basil-700 shrink-0"
-          >
-            View all <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-
-        {comboLoading || !comboDeals ? (
-          <ProductGridSkeleton count={4} />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-            {comboDeals.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
       </div>
 
       {editOpen && <CustomizeGroceryModal onClose={() => setEditOpen(false)} />}
