@@ -22,6 +22,7 @@ import Offers from "./pages/Offers";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import ShippingPolicy from "./pages/ShippingPolicy";
+import DeliveryInformation from "./pages/DeliveryInformation";
 import ReturnPolicy from "./pages/ReturnPolicy";
 import ComingSoon from "./pages/ComingSoon";
 import GroceryEstimate from "./pages/GroceryEstimate";
@@ -71,6 +72,7 @@ export default function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
+        <Route path="/delivery-information" element={<DeliveryInformation />} />
         <Route path="/return-policy" element={<ReturnPolicy />} />
         <Route path="/grocery-estimate" element={<GroceryEstimate />} />
         <Route path="/book-goat" element={<BookGoat />} />

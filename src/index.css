@@ -147,3 +147,6 @@
   animation: dropdown-in 0.16s ease-out;
   transform-origin: top;
 }
+.snap-start {
+  margin-bottom: 20px;
+}

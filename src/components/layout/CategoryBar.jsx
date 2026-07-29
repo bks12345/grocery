@@ -40,9 +40,9 @@ export default function CategoryBar() {
               to="/order-from-nepal"
               className="shrink-0 flex items-center gap-1.5 bg-white text-basil-700 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full shadow-soft transition-all hover:bg-basil-50 hover:shadow-soft-lg hover:-translate-y-0.5"
             >
-              <span className="text-sm sm:text-base leading-none" aria-hidden="true">
+              {/* <span className="text-sm sm:text-base leading-none" aria-hidden="true">
                 🇳🇵
-              </span>
+              </span> */}
               <span className="whitespace-nowrap">Order from Nepal</span>
             </Link>
           )}

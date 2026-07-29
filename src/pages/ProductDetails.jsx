@@ -7,6 +7,7 @@ import { getProductImage, getProductImageFallback } from "../data/images";
 import PriceTag from "../components/ui/PriceTag";
 import SafeImage from "../components/ui/SafeImage";
 import ProductCard from "../components/ui/ProductCard";
+import PostcodeCheck from "../components/ui/PostcodeCheck";
 import ComingSoon from "./ComingSoon";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -136,7 +137,7 @@ export default function ProductDetails() {
 
       <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
         {/* Image */}
-        <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] md:h-[calc(100vh-11rem)] overflow-hidden shadow-elevated md:sticky md:top-40 md:self-start">
+        <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] md:h-[32rem] overflow-hidden shadow-elevated">
           <SafeImage
             src={getProductImage(product)}
             fallbackSrc={getProductImageFallback(product)}
@@ -169,7 +170,7 @@ export default function ProductDetails() {
         </div>
 
         {/* Info */}
-        <div className="flex flex-col md:max-h-[calc(100vh-11rem)] md:overflow-y-auto md:overscroll-contain md:pr-3 md:self-start">
+        <div className="flex flex-col">
           <p className="text-xs uppercase tracking-wide text-ink-soft/70">
             {product.brand}
           </p>
@@ -355,6 +356,8 @@ export default function ProductDetails() {
               <X size={15} /> Currently unavailable — check back soon.
             </p>
           )}
+
+          <PostcodeCheck className="mt-7 pt-6 border-t border-basil-50 max-w-lg" />
         </div>
       </div>
 

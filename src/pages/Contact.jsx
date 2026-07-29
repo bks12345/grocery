@@ -31,36 +31,43 @@ export default function Contact() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       <div className="text-center max-w-xl mx-auto">
-        <h1 className="font-display text-3xl font-semibold text-ink">Get in Touch</h1>
-        <p className="text-ink-soft mt-2">
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Get in Touch</h1>
+        <p className="text-ink-soft mt-2 text-sm sm:text-base">
           Questions about an order, a product, or anything else — we're happy to help.
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-8 mt-10">
+      <div className="grid md:grid-cols-5 gap-6 sm:gap-8 mt-8 sm:mt-10">
         {/* Contact info */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+        <div className="md:col-span-2 flex flex-col gap-4">
           {contactDetails.map(({ icon: Icon, label, value }) => (
-            <div key={label} className="card-elevated rounded-2xl p-5 flex items-center gap-4">
+            <div key={label} className="card-elevated rounded-2xl p-4 sm:p-5 flex items-center gap-4">
               <div className="w-10 h-10 shrink-0 rounded-full bg-basil-50 flex items-center justify-center">
                 <Icon size={17} className="text-basil-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-ink-soft/60">{label}</p>
-                <p className="text-sm font-medium text-ink">{value}</p>
+                <p className="text-sm font-medium text-ink break-words">{value}</p>
               </div>
             </div>
           ))}
 
           {/* Map placeholder — swap for a real embed once you have a Maps API key */}
-          <div className="card-elevated rounded-2xl overflow-hidden h-48 bg-basil-50 flex items-center justify-center">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d424141.6978944982!2d150.93197474999997!3d-33.84824395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b129838f39a743f%3A0x3017d681632a850!2sSydney%20NSW%2C%20Australia!5e0!3m2!1sen!2snp!4v1784896782864!5m2!1sen!2snp" width="600" height="450" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          <div className="card-elevated rounded-2xl overflow-hidden h-48 bg-basil-50">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d424141.6978944982!2d150.93197474999997!3d-33.84824395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b129838f39a743f%3A0x3017d681632a850!2sSydney%20NSW%2C%20Australia!5e0!3m2!1sen!2snp!4v1784896782864!5m2!1sen!2snp"
+              className="block w-full h-full border-0"
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              title="Store location map"
+            ></iframe>
           </div>
         </div>
 
         {/* Contact form */}
-        <div className="lg:col-span-3">
-          <div className="card-elevated rounded-3xl p-6 sm:p-8">
+        <div className="md:col-span-3">
+          <div className="card-elevated rounded-3xl p-5 sm:p-8">
             {sent ? (
               <div className="text-center py-10">
                 <CheckCircle2 size={36} className="mx-auto text-basil-600" />
@@ -113,7 +120,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center justify-center gap-2 bg-basil-600 text-white py-3 rounded-full font-medium hover:bg-basil-700 hover:shadow-glow transition-all disabled:opacity-60 self-start px-8"
+                  className="flex items-center justify-center gap-2 bg-basil-600 text-white py-3 rounded-full font-medium hover:bg-basil-700 hover:shadow-glow transition-all disabled:opacity-60 w-full sm:w-auto sm:self-start px-8"
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
                   Send Message

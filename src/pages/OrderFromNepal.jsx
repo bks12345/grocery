@@ -86,14 +86,15 @@ export default function OrderFromNepal() {
       {/* Header */}
       <div className="text-center max-w-xl mx-auto">
         <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <span className="text-2xl sm:text-3xl md:text-4xl">🇳🇵</span>
+          {/* <span className="text-2xl sm:text-3xl md:text-4xl">🇳🇵</span> */}
           <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold text-ink">
             Order from Nepal
           </h1>
         </div>
         <p className="text-ink-soft mt-3">
           Can't find it in our catalogue? Tell us what you need and we'll source it
-          for you — we'll be in touch shortly. <Heart size={14} className="inline text-tomato-500 -mt-0.5" fill="currentColor" />
+          for you — we'll be in touch shortly. 
+          {/* <Heart size={14} className="inline text-tomato-500 -mt-0.5" fill="currentColor" /> */}
         </p>
       </div>
 

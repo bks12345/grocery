@@ -24,6 +24,7 @@ const footerLinks = {
   Policies: [
     { label: "Privacy Policy", to: "/privacy-policy" },
     { label: "Terms & Conditions", to: "/terms" },
+    { label: "Delivery Information", to: "/delivery-information" },
     { label: "Shipping Policy", to: "/shipping-policy" },
     { label: "Return & Refund Policy", to: "/return-policy" },
   ],
