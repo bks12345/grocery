@@ -10,7 +10,7 @@ import FilterSidebar from "../components/ui/FilterSidebar";
 import Pagination from "../components/ui/Pagination";
 import { ProductGridSkeleton, ProductListSkeleton } from "../components/ui/Skeletons";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 const VIEW_MODE_KEY = "daalbhat_shop_view_mode";
 
 const defaultFilters = {
