@@ -1,6 +1,6 @@
-import { categories } from '../../src/data/categories.js';
-import { products } from '../../src/data/products.js';
-import { goatParts } from '../../src/data/goatParts.js';
+import { categories } from './seed-data/categories.js';
+import { products } from './seed-data/products.js';
+import { goatParts } from './seed-data/goatParts.js';
 import prisma from '../src/db.js';
 
 async function main() {
