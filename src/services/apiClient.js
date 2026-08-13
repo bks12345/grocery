@@ -7,16 +7,16 @@
 // component that already uses the service functions keeps working
 // unchanged, because the function signatures and return shapes stay the same.
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
 async function request(path, options = {}) {
-  const token = localStorage.getItem("authToken"); // set this after login, once auth exists
+  // Tokens are now stored in HttpOnly cookies, so we don't need to manually read them
 
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
+    credentials: "include", // Send cookies with requests
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
   });
@@ -33,6 +33,9 @@ async function request(path, options = {}) {
 export const apiGet = (path) => request(path);
 export const apiPost = (path, data) =>
   request(path, { method: "POST", body: JSON.stringify(data) });
+export const apiPut = (path, data) =>
+  request(path, { method: "PUT", body: JSON.stringify(data) });
 export const apiPatch = (path, data) =>
   request(path, { method: "PATCH", body: JSON.stringify(data) });
 export const apiDelete = (path) => request(path, { method: "DELETE" });
+

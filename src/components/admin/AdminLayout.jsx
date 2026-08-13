@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Users,
   Tag,
+  Mail,
   Loader2,
   ArrowLeft,
 } from "lucide-react";
@@ -17,7 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 // can already read the source or localStorage, so it isn't real security
 // either way. Turn this back on once a real backend/auth exists and this
 // check is backed by an actual server-side permission, not just UI.
-const REQUIRE_ADMIN_LOGIN = false;
+const REQUIRE_ADMIN_LOGIN = true;
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -26,6 +27,7 @@ const navItems = [
   { to: "/admin/orders", label: "Orders", icon: ClipboardList },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/coupons", label: "Coupons", icon: Tag },
+  { to: "/admin/templates", label: "Templates", icon: Mail },
 ];
 
 export default function AdminLayout() {

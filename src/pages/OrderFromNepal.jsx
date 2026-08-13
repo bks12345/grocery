@@ -19,6 +19,7 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
+import { apiPost } from "../services/apiClient";
 
 const initialCustomer = { fullName: "", phone: "", email: "" };
 const initialAddress = { fullAddress: "", province: "", district: "", city: "" };
@@ -64,8 +65,17 @@ export default function OrderFromNepal() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // No backend yet — simulate a send. Swap for a real apiPost once one exists.
-    await new Promise((r) => setTimeout(r, 700));
+    // Call real backend endpoint
+    const payload = {
+      senderName: customer.fullName,
+      senderEmail: customer.email,
+      senderPhone: customer.phone,
+      recipientName: customer.fullName, // assuming the same for this form
+      recipientPhone: customer.phone,
+      recipientAddress: address.fullAddress,
+      items: products.filter(p => p.name.trim()),
+    };
+    await apiPost('/api/nepal-orders', payload).catch(err => console.error('Nepal order failed:', err));
     setSubmitting(false);
     setSubmitted(true);
   };

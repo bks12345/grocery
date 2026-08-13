@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag, ShoppingCart, ArrowRight, Tag, Loader2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { getProductImage, getProductImageFallback } from "../data/images";
 import SafeImage from "../components/ui/SafeImage";
 import PriceTag from "../components/ui/PriceTag";
@@ -12,6 +13,7 @@ const DELIVERY_FEE = 49;
 
 export default function Cart() {
   const { items, subtotal, updateQuantity, removeItem } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState("");
   const [appliedCode, setAppliedCode] = useState(null);
@@ -232,7 +234,13 @@ export default function Cart() {
             </div>
 
             <button
-              onClick={() => navigate("/checkout")}
+              onClick={() => {
+                if (!user) {
+                  navigate("/login", { state: { from: "/checkout", discount, appliedCode } });
+                } else {
+                  navigate("/checkout", { state: { discount, appliedCode } });
+                }
+              }}
               className="w-full mt-5 flex items-center justify-center gap-2 bg-basil-600 text-white py-3 rounded-full font-medium hover:bg-basil-700 hover:shadow-glow transition-all"
             >
               Proceed to Checkout <ArrowRight size={17} />

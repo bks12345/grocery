@@ -149,7 +149,7 @@ export default function BookGoat() {
     selectionDetails.forEach((item) => {
       addItem(
         {
-          id: `goat_${item.id}`,
+          id: item.id,
           name: `Goat ${item.name}`,
           price: item.pricePerKg,
           weight: "per kg",

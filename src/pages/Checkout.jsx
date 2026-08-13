@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Truck, Zap, Banknote, CreditCard, Smartphone, Loader2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -11,6 +11,7 @@ const EXPRESS_FEE = 99;
 
 const initialAddress = {
   fullName: "",
+  email: "",
   phone: "",
   addressLine: "",
   city: "",
@@ -20,8 +21,10 @@ const initialAddress = {
 
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { discount = 0, appliedCode = null } = location.state || {};
 
   const [address, setAddress] = useState(initialAddress);
   const [deliveryMethod, setDeliveryMethod] = useState("standard");
@@ -38,6 +41,7 @@ export default function Checkout() {
     setAddress((prev) => ({
       ...prev,
       fullName: prev.fullName || user.name || "",
+      email: prev.email || user.email || "",
       phone: prev.phone || user.phone || "",
     }));
   }, [user]);
@@ -55,13 +59,20 @@ export default function Checkout() {
     }
   }, [items.length, navigate]);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login", { replace: true, state: { from: "/checkout" } });
+    }
+  }, [user, loading, navigate]);
+
   const deliveryFee =
     deliveryMethod === "express"
       ? EXPRESS_FEE
       : subtotal >= FREE_DELIVERY_THRESHOLD
       ? 0
       : STANDARD_FEE;
-  const total = subtotal + deliveryFee;
+  const total = Math.max(0, subtotal - discount + deliveryFee);
 
   const handleAddressChange = (field) => (e) =>
     setAddress((prev) => ({ ...prev, [field]: e.target.value }));
@@ -80,6 +91,8 @@ export default function Checkout() {
           paymentMethod,
           subtotal,
           deliveryFee,
+          discount,
+          couponCode: appliedCode,
           total,
         },
         user?.id || null
@@ -102,6 +115,13 @@ export default function Checkout() {
     return null; // useEffect above redirects; avoid a flash of the empty form
   }
 
+  if (loading || !user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-24 flex justify-center">
+        <Loader2 size={32} className="text-basil-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -124,6 +144,14 @@ export default function Checkout() {
                 value={address.fullName}
                 onChange={handleAddressChange("fullName")}
                 autoComplete="name"
+                required
+              />
+              <Field
+                label="Email address"
+                type="email"
+                value={address.email}
+                onChange={handleAddressChange("email")}
+                autoComplete="email"
                 required
               />
               <Field
@@ -252,6 +280,12 @@ export default function Checkout() {
                 <span>Subtotal</span>
                 <span className="text-ink font-medium">${subtotal}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex items-center justify-between text-basil-600">
+                  <span>Discount ({appliedCode})</span>
+                  <span className="font-medium">−${discount}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between text-ink-soft">
                 <span>Delivery</span>
                 <span className="text-ink font-medium">

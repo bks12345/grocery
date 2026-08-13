@@ -38,6 +38,7 @@ const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminTemplates = lazy(() => import("./pages/admin/AdminTemplates"));
 
 function AdminFallback() {
   return (
@@ -92,6 +93,7 @@ export default function App() {
           <Route path="orders" element={<Suspense fallback={<AdminFallback />}><AdminOrders /></Suspense>} />
           <Route path="customers" element={<Suspense fallback={<AdminFallback />}><AdminCustomers /></Suspense>} />
           <Route path="coupons" element={<Suspense fallback={<AdminFallback />}><AdminCoupons /></Suspense>} />
+          <Route path="templates" element={<Suspense fallback={<AdminFallback />}><AdminTemplates /></Suspense>} />
         </Route>
 
         <Route path="*" element={<ComingSoon title="Page Not Found" />} />

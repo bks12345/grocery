@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: daalbhat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    # Port is internal to the docker network by default. 
+    # Uncomment below to access externally from the VPS.
+    # ports:
+    #   - "5432:5432"
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # These will be loaded from a .env file on the VPS if available,
+      # or you can define them here.
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/daalbhat?schema=public"
+      PORT: 5000
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

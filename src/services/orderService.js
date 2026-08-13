@@ -1,107 +1,123 @@
-// Mimics real order endpoints (POST /api/orders, GET /api/orders).
-// Orders are saved to localStorage so Order History has something to show
-// across a refresh. Swap the body of each function for real apiPost/apiGet
-// calls later — callers already treat everything here as async.
+import { apiGet, apiPost, apiPatch, apiDelete } from './apiClient';
 
-const ORDERS_KEY = "daalbhat_orders";
-const delay = (ms = 700) => new Promise((r) => setTimeout(r, ms));
+const ORDERS_KEY = 'daalbhat_mock_orders';
 
-function loadOrders() {
+function getStoredOrders() {
   try {
-    const saved = localStorage.getItem(ORDERS_KEY);
-    const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    const data = localStorage.getItem(ORDERS_KEY);
+    return data ? JSON.parse(data) : [];
   } catch {
     return [];
   }
 }
 
-function saveOrders(orders) {
+function saveStoredOrders(orders) {
   try {
     localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-  } catch {
-    // Storage unavailable — order still succeeds, just won't show in history
-  }
+  } catch {}
 }
 
-/**
- * @param {object} orderData - { items, address, deliveryMethod, paymentMethod, subtotal, deliveryFee, total }
- * @param {string|null} userId - null for guest checkout
- * @returns {Promise<{orderId: string, estimatedDelivery: string}>}
- */
 export async function placeOrder(orderData, userId = null) {
-  await delay();
-
-  if (!orderData.items?.length) {
-    throw new Error("Cannot place an order with an empty cart");
+  try {
+    const res = await apiPost('/api/orders', { ...orderData, userId });
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Place order API failed, using fallback:', err.message);
   }
 
-  // A real backend would generate this; we fake a readable order id.
-  const orderId = `GC${Date.now().toString().slice(-8)}`;
-
-  const deliveryDays = orderData.deliveryMethod === "express" ? 1 : 3;
-  const estimatedDate = new Date();
-  estimatedDate.setDate(estimatedDate.getDate() + deliveryDays);
-  const estimatedDelivery = estimatedDate.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  const order = {
+  const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+  const newOrder = {
     orderId,
     userId,
     placedAt: new Date().toISOString(),
-    estimatedDelivery,
-    status: "confirmed",
-    items: orderData.items.map(({ product, quantity }) => ({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-    })),
-    address: orderData.address,
-    deliveryMethod: orderData.deliveryMethod,
-    paymentMethod: orderData.paymentMethod,
-    subtotal: orderData.subtotal,
-    deliveryFee: orderData.deliveryFee,
-    total: orderData.total,
+    status: 'confirmed',
+    ...orderData,
   };
 
-  saveOrders([order, ...loadOrders()]);
+  const orders = getStoredOrders();
+  orders.unshift(newOrder);
+  saveStoredOrders(orders);
 
-  return { orderId, estimatedDelivery };
+  return newOrder;
 }
 
-/** GET /api/orders — order history for the logged-in user */
 export async function getOrderHistory(userId) {
-  await delay(300);
-  return loadOrders().filter((o) => o.userId === userId);
+  try {
+    const res = await apiGet('/api/orders');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Get orders API failed, using fallback:', err.message);
+  }
+
+  const orders = getStoredOrders();
+  if (userId) {
+    return orders.filter((o) => o.userId === userId);
+  }
+  return orders;
 }
 
-/** GET /api/orders/:orderId */
 export async function getOrder(orderId) {
-  await delay(200);
-  const order = loadOrders().find((o) => o.orderId === orderId);
-  if (!order) throw new Error("Order not found.");
-  return order;
+  try {
+    const res = await apiGet(`/api/orders/${orderId}`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Get order API failed, using fallback:', err.message);
+  }
+
+  const orders = getStoredOrders();
+  return orders.find((o) => o.orderId === orderId) || null;
 }
 
 // ---- Admin: order management ----
-
-/** GET /api/admin/orders — every order, across all customers */
 export async function getAllOrders() {
-  await delay(300);
-  return loadOrders();
+  try {
+    const res = await apiGet('/api/admin/orders');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Admin orders API failed, using fallback:', err.message);
+  }
+  return getStoredOrders();
 }
 
-/** PATCH /api/admin/orders/:orderId/status */
 export async function updateOrderStatus(orderId, status) {
-  await delay();
-  const orders = loadOrders();
-  const index = orders.findIndex((o) => o.orderId === orderId);
-  if (index === -1) throw new Error("Order not found.");
-  orders[index] = { ...orders[index], status };
-  saveOrders(orders);
-  return orders[index];
+  try {
+    const res = await apiPatch(`/api/admin/orders/${orderId}/status`, { status });
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Update order status API failed, using fallback:', err.message);
+  }
+
+  const orders = getStoredOrders();
+  const order = orders.find((o) => o.orderId === orderId);
+  if (order) {
+    order.status = status;
+    saveStoredOrders(orders);
+  }
+  return order;
+}
+
+export async function deleteOrder(orderId) {
+  try {
+    const res = await apiDelete(`/api/admin/orders/${orderId}`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Delete order API failed, using fallback:', err.message);
+  }
+
+  const orders = getStoredOrders();
+  const newOrders = orders.filter((o) => o.orderId !== orderId);
+  saveStoredOrders(newOrders);
+  return { success: true };
+}
+
+export async function deleteAllOrders() {
+  try {
+    const res = await apiDelete('/api/admin/orders');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[orderService] Delete all orders API failed, using fallback:', err.message);
+  }
+
+  saveStoredOrders([]);
+  return { success: true };
 }

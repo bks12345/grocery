@@ -38,7 +38,10 @@ export default function AdminProducts() {
     }
   };
 
-  const categoryName = (id) => categories.find((c) => c.id === id)?.name || id;
+  const categoryName = (cat) => {
+    if (typeof cat === 'object' && cat !== null) return cat.name;
+    return categories.find((c) => c.id === cat)?.name || cat;
+  };
 
   const filtered = (products || []).filter((p) =>
     `${p.name} ${p.brand}`.toLowerCase().includes(search.toLowerCase())

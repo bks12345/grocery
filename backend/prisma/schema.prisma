@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  name                 String
+  email                String    @unique
+  phone                String?
+  password             String
+  role                 String    @default("customer")
+  blocked              Boolean   @default(false)
+  lastLogin            DateTime?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  addresses            Json      @default("[]")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime? @updatedAt
+  orders               Order[]
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String
+  slug     String    @unique
+  image    String?
+  products Product[]
+}
+
+model Product {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  image          String?
+  price          Float
+  oldPrice       Float?
+  category       Category @relation(fields: [categoryId], references: [id])
+  categoryId     String
+  brand          String
+  rating         Float    @default(0)
+  reviewsCount   Int      @default(0)
+  inStock        Boolean  @default(true)
+  isBulk         Boolean  @default(false)
+  isCombo        Boolean  @default(false)
+  isFestivalSale Boolean  @default(false)
+  isBestSeller   Boolean  @default(false)
+  isNew          Boolean  @default(false)
+  isFeatured     Boolean  @default(false)
+  comboItems     String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orderItems OrderItem[]
+}
+
+model Order {
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id])
+  placedAt          DateTime @default(now())
+  estimatedDelivery String
+  status            String   @default("confirmed")
+  address           Json
+  deliveryMethod    String
+  paymentMethod     String
+  subtotal          Float
+  discount          Float?   @default(0)
+  couponCode        String?
+  deliveryFee       Float
+  total             Float
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  name      String
+  price     Float
+  quantity  Int
+}
+
+model Coupon {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  type        String    // 'percent' or 'flat'
+  value       Float
+  description String
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model NepalOrder {
+  id               String   @id @default(uuid())
+  senderName       String
+  senderEmail      String
+  senderPhone      String
+  recipientName    String
+  recipientPhone   String
+  recipientAddress String
+  items            Json
+  totalValue       Float
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+}
+
+model EmailTemplate {
+  id        String   @id @default(uuid())
+  type      String   @unique // 'otp', 'order_confirmation', 'admin_new_order', 'order_status'
+  subject   String
+  bodyHtml  String
+  updatedAt DateTime @updatedAt
+}

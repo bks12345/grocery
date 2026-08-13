@@ -1,27 +1,43 @@
-import * as store from "./categoryStore";
+import { apiGet, apiPost, apiPatch, apiDelete } from './apiClient';
+import * as store from './categoryStore';
 
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
-
-/** GET /api/admin/categories */
 export async function getAllCategories() {
-  await delay();
+  try {
+    const res = await apiGet('/api/admin/categories');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[adminCategoryService] API failed, using fallback:', err.message);
+  }
   return store.getEffectiveCategories();
 }
 
-/** POST /api/admin/categories */
 export async function createCategory(category) {
-  await delay(400);
+  try {
+    const res = await apiPost('/api/admin/categories', category);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[adminCategoryService] Create API failed, using fallback:', err.message);
+  }
   return store.addCategory(category);
 }
 
-/** PATCH /api/admin/categories/:id */
 export async function editCategory(id, updates) {
-  await delay(400);
+  try {
+    const res = await apiPatch(`/api/admin/categories/${id}`, updates);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[adminCategoryService] Edit API failed, using fallback:', err.message);
+  }
   return store.updateCategory(id, updates);
 }
 
-/** DELETE /api/admin/categories/:id */
 export async function removeCategory(id) {
-  await delay(300);
-  store.deleteCategory(id); // throws if products still reference this category
+  try {
+    await apiDelete(`/api/admin/categories/${id}`);
+    return true;
+  } catch (err) {
+    console.warn('[adminCategoryService] Remove API failed, using fallback:', err.message);
+  }
+  store.deleteCategory(id);
+  return true;
 }

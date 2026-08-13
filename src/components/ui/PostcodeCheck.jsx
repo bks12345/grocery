@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LocateFixed, CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { findZoneByPostcode } from "../../data/deliveryZones";
+import { apiGet } from "../../services/apiClient";
 
 export default function PostcodeCheck({ className = "" }) {
   const [postcode, setPostcode] = useState("");
@@ -13,9 +13,13 @@ export default function PostcodeCheck({ className = "" }) {
     if (!postcode.trim()) return;
     setChecking(true);
     setResult(null);
-    // Simulated lookup — swap for a real serviceability API once one exists.
-    await new Promise((r) => setTimeout(r, 500));
-    setResult({ zone: findZoneByPostcode(postcode) });
+    try {
+      const res = await apiGet(`/api/delivery/zone/${postcode}`);
+      setResult({ zone: res?.zone || null });
+    } catch (err) {
+      console.error('Postcode check failed:', err);
+      setResult({ zone: null });
+    }
     setChecking(false);
   };
 

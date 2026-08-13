@@ -1,104 +1,111 @@
-// Mimics real coupon endpoints. Seeded with a couple of default coupons so
-// the Cart/Offers pages have something real to show; Admin → Coupons lets
-// you add/edit/delete from there, all persisted to localStorage.
-
-const COUPONS_KEY = "daalbhat_coupons";
-const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
+import { apiGet, apiPost, apiPatch, apiDelete } from './apiClient';
 
 const defaultCoupons = [
-  {
-    code: "WELCOME10",
-    type: "percent",
-    value: 10,
-    description: "10% off your order",
-    expiresAt: null,
-    active: true,
-  },
-  {
-    code: "BULK50",
-    type: "flat",
-    value: 50,
-    description: "$50 off bulk pack orders",
-    expiresAt: null,
-    active: true,
-  },
+  { id: 'c1', code: 'WELCOME10', discountType: 'percentage', discountValue: 10, minPurchase: 50, active: true },
+  { id: 'c2', code: 'FREESHIP', discountType: 'shipping', discountValue: 0, minPurchase: 30, active: true },
+  { id: 'c3', code: 'DAALBHAT20', discountType: 'percentage', discountValue: 20, minPurchase: 100, active: true },
 ];
 
-function loadCoupons() {
+const COUPONS_KEY = 'daalbhat_mock_coupons';
+
+function getStoredCoupons() {
   try {
-    const saved = localStorage.getItem(COUPONS_KEY);
-    if (!saved) {
-      saveCoupons(defaultCoupons);
-      return defaultCoupons;
-    }
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : defaultCoupons;
+    const data = localStorage.getItem(COUPONS_KEY);
+    return data ? JSON.parse(data) : defaultCoupons;
   } catch {
     return defaultCoupons;
   }
 }
 
-function saveCoupons(coupons) {
+
+function saveStoredCoupons(coupons) {
   try {
     localStorage.setItem(COUPONS_KEY, JSON.stringify(coupons));
-  } catch {
-    // Storage unavailable — coupons still work for this session
-  }
+  } catch {}
 }
 
-const isExpired = (coupon) =>
-  coupon.expiresAt ? new Date(coupon.expiresAt) < new Date() : false;
-
-/** GET /api/coupons — active, non-expired coupons (for the Offers page) */
 export async function getActiveCoupons() {
-  await delay();
-  return loadCoupons().filter((c) => c.active && !isExpired(c));
-}
-
-/** GET /api/coupons (admin) — everything, including inactive/expired */
-export async function getAllCoupons() {
-  await delay();
-  return loadCoupons();
-}
-
-/** POST /api/coupons/validate */
-export async function validateCoupon(code) {
-  await delay(150);
-  const coupon = loadCoupons().find(
-    (c) => c.code.toUpperCase() === code.trim().toUpperCase()
-  );
-  if (!coupon) throw new Error("Invalid coupon code.");
-  if (!coupon.active) throw new Error("This coupon is no longer active.");
-  if (isExpired(coupon)) throw new Error("This coupon has expired.");
-  return coupon;
-}
-
-/** POST /api/coupons (admin) */
-export async function createCoupon(coupon) {
-  await delay();
-  const coupons = loadCoupons();
-  if (coupons.some((c) => c.code.toUpperCase() === coupon.code.toUpperCase())) {
-    throw new Error("A coupon with this code already exists.");
+  try {
+    const res = await apiGet('/api/coupons');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[couponService] Active coupons API failed, using fallback:', err.message);
   }
-  const next = [...coupons, { ...coupon, code: coupon.code.toUpperCase() }];
-  saveCoupons(next);
-  return next;
+  return getStoredCoupons().filter((c) => c.active !== false);
 }
 
-/** PATCH /api/coupons/:code (admin) */
-export async function updateCoupon(code, updates) {
-  await delay();
-  const coupons = loadCoupons().map((c) =>
-    c.code === code ? { ...c, ...updates } : c
+export async function validateCoupon(code) {
+  try {
+    const res = await apiPost('/api/coupons/validate', { code });
+    if (res) return res;
+  } catch (err) {
+    console.warn('[couponService] Validate coupon API failed, using fallback:', err.message);
+  }
+
+  const coupons = getStoredCoupons();
+  const found = coupons.find(
+    (c) => c.code.toUpperCase() === code.trim().toUpperCase() && c.active !== false
   );
-  saveCoupons(coupons);
-  return coupons;
+
+  if (!found) {
+    throw new Error('Invalid or expired promo code');
+  }
+  return found;
 }
 
-/** DELETE /api/coupons/:code (admin) */
+export async function getAllCoupons() {
+  try {
+    const res = await apiGet('/api/admin/coupons');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[couponService] Admin coupons API failed, using fallback:', err.message);
+  }
+  return getStoredCoupons();
+}
+
+export async function createCoupon(coupon) {
+  try {
+    const res = await apiPost('/api/admin/coupons', coupon);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[couponService] Create coupon API failed, using fallback:', err.message);
+  }
+
+  const coupons = getStoredCoupons();
+  const newCoupon = { id: `c_${Date.now()}`, active: true, ...coupon };
+  coupons.push(newCoupon);
+  saveStoredCoupons(coupons);
+  return newCoupon;
+}
+
+export async function updateCoupon(code, updates) {
+  try {
+    const res = await apiPatch(`/api/admin/coupons/${code}`, updates);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[couponService] Update coupon API failed, using fallback:', err.message);
+  }
+
+  const coupons = getStoredCoupons();
+  const index = coupons.findIndex((c) => c.code.toLowerCase() === code.toLowerCase());
+  if (index !== -1) {
+    coupons[index] = { ...coupons[index], ...updates };
+    saveStoredCoupons(coupons);
+    return coupons[index];
+  }
+  return null;
+}
+
 export async function deleteCoupon(code) {
-  await delay();
-  const coupons = loadCoupons().filter((c) => c.code !== code);
-  saveCoupons(coupons);
-  return coupons;
+  try {
+    await apiDelete(`/api/admin/coupons/${code}`);
+    return true;
+  } catch (err) {
+    console.warn('[couponService] Delete coupon API failed, using fallback:', err.message);
+  }
+
+  let coupons = getStoredCoupons();
+  coupons = coupons.filter((c) => c.code.toLowerCase() !== code.toLowerCase());
+  saveStoredCoupons(coupons);
+  return true;
 }

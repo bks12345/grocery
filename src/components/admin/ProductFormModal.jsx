@@ -9,6 +9,7 @@ const emptyForm = {
   oldPrice: "",
   weight: "",
   description: "",
+  image: "",
   inStock: true,
   isBulk: false,
   isFeatured: false,
@@ -22,16 +23,39 @@ export default function ProductFormModal({ categories, allProducts = [], initial
   const [form, setForm] = useState(() => ({
     ...emptyForm,
     ...initial,
+    category: initial?.categoryId || (typeof initial?.category === 'object' ? initial.category.id : initial?.category) || "",
     price: initial?.price ?? "",
     oldPrice: initial?.oldPrice ?? "",
+    image: initial?.image ?? "",
     comboItems: initial?.comboItems ?? [],
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleChange = (field) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setError(null);
+    try {
+      // Assuming we have uploadProductImage in adminProductService
+      const { uploadProductImage } = await import("../../services/adminProductService");
+      const res = await uploadProductImage(file);
+      if (res.imageUrl) {
+        setForm((prev) => ({ ...prev, image: res.imageUrl }));
+      }
+    } catch (err) {
+      setError("Failed to upload image. Please try again or provide a URL.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const toggleComboItem = (productId) => {
@@ -60,6 +84,7 @@ export default function ProductFormModal({ categories, allProducts = [], initial
     try {
       await onSave({
         ...form,
+        category: { id: form.category }, // Pass as object since backend expects it, or just use categoryId
         price: Number(form.price),
         oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
         comboItems: form.isCombo ? form.comboItems : undefined,
@@ -112,6 +137,30 @@ export default function ProductFormModal({ categories, allProducts = [], initial
           </div>
 
           <Field label="Weight / quantity" placeholder="e.g. 1 kg, 500 ml" value={form.weight} onChange={handleChange("weight")} />
+
+          <div className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-ink-soft">Product Image</span>
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                placeholder="Image URL or Base64 (optional)"
+                value={form.image}
+                onChange={handleChange("image")}
+                className="px-4 py-2.5 rounded-full bg-cream shadow-soft focus:shadow-soft-lg outline-none transition-shadow text-ink w-full"
+              />
+              <div className="flex items-center gap-3">
+                <label className="flex items-center justify-center gap-2 bg-cream text-basil-600 px-4 py-2 rounded-full font-medium hover:bg-basil-50 cursor-pointer border border-basil-100 transition-colors">
+                  {uploadingImage ? <Loader2 size={16} className="animate-spin" /> : "Upload File"}
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
+                </label>
+                {form.image && (
+                  <div className="h-10 w-10 rounded-lg overflow-hidden bg-cream shadow-soft flex-shrink-0">
+                    <img src={form.image} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium text-ink-soft">Description</span>

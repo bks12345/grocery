@@ -1,174 +1,143 @@
-import { getEffectiveProducts, getEffectiveProduct } from "./productStore";
+import { apiGet } from './apiClient';
+import * as store from './productStore';
 
-// Simulates real network latency so loading states are honest during
-// development, instead of resolving instantly. Set to 0 (or remove the
-// await) once a real API is providing genuine latency.
-const SIMULATED_DELAY_MS = 250;
-const delay = (ms = SIMULATED_DELAY_MS) => new Promise((r) => setTimeout(r, ms));
-
-/**
- * Fetch a paginated, filtered, sorted list of products — the shape a real
- * backend list endpoint (e.g. GET /api/products) would return.
- *
- * @param {object} params
- * @param {string} [params.category]
- * @param {string} [params.search]
- * @param {number} [params.minPrice]
- * @param {number} [params.maxPrice]
- * @param {string[]} [params.brands]
- * @param {number} [params.minRating]
- * @param {boolean} [params.inStockOnly]
- * @param {boolean} [params.bulkOnly]
- * @param {boolean} [params.comboOnly]
- * @param {boolean} [params.festivalSaleOnly]
- * @param {boolean} [params.bestSellerOnly]
- * @param {boolean} [params.newOnly]
- * @param {boolean} [params.featuredOnly]
- * @param {boolean} [params.discountOnly]
- * @param {string} [params.sort] - 'relevance' | 'price-low-high' | 'price-high-low' | 'popularity' | 'latest' | 'best-selling'
- * @param {number} [params.page] - 1-indexed
- * @param {number} [params.pageSize]
- * @returns {Promise<{items: object[], total: number, page: number, pageSize: number, totalPages: number}>}
- */
-export async function queryProducts({
-  category = "",
-  search = "",
-  minPrice = 0,
-  maxPrice = Infinity,
-  brands = [],
-  minRating = 0,
-  inStockOnly = false,
-  bulkOnly = false,
-  comboOnly = false,
-  festivalSaleOnly = false,
-  bestSellerOnly = false,
-  newOnly = false,
-  featuredOnly = false,
-  discountOnly = false,
-  sort = "relevance",
-  page = 1,
-  pageSize = 8,
-} = {}) {
-  await delay();
-
-  let list = getEffectiveProducts().filter((p) => {
-    if (category && p.category !== category) return false;
-    if (p.price < minPrice || p.price > maxPrice) return false;
-    if (brands.length && !brands.includes(p.brand)) return false;
-    if (minRating && p.rating < minRating) return false;
-    if (inStockOnly && !p.inStock) return false;
-    if (bulkOnly && !p.isBulk) return false;
-    if (comboOnly && !p.isCombo) return false;
-    if (festivalSaleOnly && !p.isFestivalSale) return false;
-    if (bestSellerOnly && !p.isBestSeller) return false;
-    if (newOnly && !p.isNew) return false;
-    if (featuredOnly && !p.isFeatured) return false;
-    if (discountOnly && !(p.oldPrice && p.oldPrice > p.price)) return false;
-    if (search.trim()) {
-      const term = search.trim().toLowerCase();
-      const haystack = `${p.name} ${p.brand} ${p.category}`.toLowerCase();
-      if (!haystack.includes(term)) return false;
+export async function queryProducts(params = {}) {
+  try {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          query.append(key, value.join(','));
+        } else {
+          query.append(key, value);
+        }
+      }
     }
-    return true;
-  });
-
-  switch (sort) {
-    case "price-low-high":
-      list = [...list].sort((a, b) => a.price - b.price);
-      break;
-    case "price-high-low":
-      list = [...list].sort((a, b) => b.price - a.price);
-      break;
-    case "popularity":
-      list = [...list].sort((a, b) => b.rating * b.reviewsCount - a.rating * a.reviewsCount);
-      break;
-    case "latest":
-      list = [...list].sort((a, b) => (b.isNew === true) - (a.isNew === true));
-      break;
-    case "best-selling":
-      list = [...list].sort((a, b) => (b.isBestSeller === true) - (a.isBestSeller === true));
-      break;
-    default:
-      break;
+    const res = await apiGet(`/api/products?${query.toString()}`);
+    if (res && (res.items || Array.isArray(res))) {
+      return {
+        items: Array.isArray(res) ? res : res.items,
+        total: Array.isArray(res) ? res.length : (res.total || res.items.length),
+      };
+    }
+  } catch (err) {
+    console.warn('[productService] API request failed, using local store fallback:', err.message);
   }
 
-  const total = list.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const items = list.slice((page - 1) * pageSize, page * pageSize);
+  // Resilient fallback using productStore
+  let items = store.getEffectiveProducts();
 
-  return { items, total, page, pageSize, totalPages };
+  if (params.category && params.category !== 'all') {
+    items = items.filter((p) => p.category === params.category);
+  }
+  if (params.search) {
+    const s = params.search.toLowerCase();
+    items = items.filter(
+      (p) =>
+        p.name.toLowerCase().includes(s) ||
+        (p.description && p.description.toLowerCase().includes(s))
+    );
+  }
+  if (params.featuredOnly) items = items.filter((p) => p.featured);
+  if (params.bestSellerOnly) items = items.filter((p) => p.bestSeller);
+  if (params.bulkOnly) items = items.filter((p) => p.isBulk);
+  if (params.comboOnly) items = items.filter((p) => p.isCombo);
+  if (params.festivalSaleOnly) items = items.filter((p) => p.onFestivalSale);
+
+  if (params.brand && params.brand !== 'all') {
+    items = items.filter((p) => p.brand === params.brand);
+  }
+  if (params.minPrice !== undefined && params.minPrice !== '') {
+    items = items.filter((p) => p.price >= Number(params.minPrice));
+  }
+  if (params.maxPrice !== undefined && params.maxPrice !== '') {
+    items = items.filter((p) => p.price <= Number(params.maxPrice));
+  }
+
+  return { items, total: items.length };
 }
 
-/** GET /api/products/:id */
 export async function getProduct(id) {
-  await delay();
-  const product = getEffectiveProduct(id);
-  if (!product) throw new Error("Product not found");
-  return product;
+  try {
+    const res = await apiGet(`/api/products/${id}`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[productService] API request failed for product id, using fallback:', err.message);
+  }
+  return store.getEffectiveProduct(id);
 }
 
-/** GET /api/products/:id/related */
 export async function getRelatedProducts(product, limit = 4) {
-  await delay();
-  return getEffectiveProducts()
-    .filter((p) => p.category === product.category && p.id !== product.id)
+  try {
+    const res = await apiGet(`/api/products/${product.id}/related?limit=${limit}`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[productService] Related products API failed, using fallback:', err.message);
+  }
+  const all = store.getEffectiveProducts();
+  return all
+    .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, limit);
 }
 
-/** GET /api/products?featured=true */
 export async function getFeaturedProducts() {
-  await delay();
-  return getEffectiveProducts().filter((p) => p.isFeatured);
+  const res = await queryProducts({ featuredOnly: true });
+  return res.items || [];
 }
 
-/** GET /api/products?bestSeller=true */
 export async function getBestSellers() {
-  await delay();
-  return getEffectiveProducts().filter((p) => p.isBestSeller);
+  const res = await queryProducts({ bestSellerOnly: true });
+  return res.items || [];
 }
 
-/** GET /api/products?bulk=true */
 export async function getBulkProducts() {
-  await delay();
-  return getEffectiveProducts().filter((p) => p.isBulk);
+  const res = await queryProducts({ bulkOnly: true });
+  return res.items || [];
 }
 
-/** GET /api/products?combo=true */
 export async function getComboDeals() {
-  await delay();
-  return getEffectiveProducts().filter((p) => p.isCombo);
+  const res = await queryProducts({ comboOnly: true });
+  return res.items || [];
 }
 
-/** GET /api/products?festivalSale=true */
 export async function getFestivalSaleProducts() {
-  await delay();
-  return getEffectiveProducts().filter((p) => p.isFestivalSale);
+  const res = await queryProducts({ festivalSaleOnly: true });
+  return res.items || [];
 }
 
-/**
- * Resolves a combo product's `comboItems` (an array of product ids) into
- * the actual product records, so the details page can show what's
- * included. Missing/deleted items are silently skipped rather than
- * throwing, so an admin deleting a product doesn't break existing combos.
- */
 export async function getComboItemDetails(product) {
-  await delay(150);
-  if (!product?.comboItems?.length) return [];
-  const all = getEffectiveProducts();
-  return product.comboItems
-    .map((id) => all.find((p) => p.id === id))
+  try {
+    const res = await apiGet(`/api/products/${product.id}/combo-items`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[productService] Combo details API failed, using fallback:', err.message);
+  }
+  if (!product.comboItemIds) return [];
+  const all = store.getEffectiveProducts();
+  return product.comboItemIds
+    .map((itemId) => all.find((p) => p.id === itemId))
     .filter(Boolean);
 }
 
-/** GET /api/products/brands — for populating the brand filter */
 export async function getBrands() {
-  await delay();
-  return [...new Set(getEffectiveProducts().map((p) => p.brand))].sort();
+  try {
+    const res = await apiGet('/api/products/brands');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[productService] Brands API failed, using fallback:', err.message);
+  }
+  const all = store.getEffectiveProducts();
+  const brands = Array.from(new Set(all.map((p) => p.brand).filter(Boolean))).sort();
+  return brands;
 }
 
-/** GET /api/products/price-range — for the price filter's max bound */
 export async function getMaxPrice() {
-  await delay();
-  const all = getEffectiveProducts();
-  return all.length ? Math.max(...all.map((p) => p.price)) : 0;
+  try {
+    const res = await apiGet('/api/products/price-range');
+    if (res && res.maxPrice) return res.maxPrice;
+  } catch (err) {
+    console.warn('[productService] Max price API failed, using fallback:', err.message);
+  }
+  const all = store.getEffectiveProducts();
+  return Math.ceil(Math.max(...all.map((p) => p.price), 100));
 }

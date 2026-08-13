@@ -18,46 +18,36 @@ export function AuthProvider({ children }) {
 
   // Restore session on first load
   useEffect(() => {
-    const session = localStorage.getItem(SESSION_KEY);
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const { userId } = JSON.parse(session);
-      authService
-        .getCurrentUser(userId)
-        .then(setUser)
-        .catch(() => localStorage.removeItem(SESSION_KEY))
-        .finally(() => setLoading(false));
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
-      setLoading(false);
-    }
+    authService
+      .getCurrentUser()
+      .then(setUser)
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const persistSession = (loggedInUser) => {
     setUser(loggedInUser);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: loggedInUser.id }));
   };
 
   const login = useCallback(async (email, password) => {
     setError(null);
-    const { user: loggedInUser } = await authService.login({ email, password });
-    persistSession(loggedInUser);
-    return loggedInUser;
+    const response = await authService.login({ email, password });
+    persistSession(response.user);
+    return response.user;
   }, []);
 
   const register = useCallback(async (data) => {
     setError(null);
-    const { user: newUser } = await authService.register(data);
-    persistSession(newUser);
-    return newUser;
+    const response = await authService.register(data);
+    persistSession(response.user);
+    return response.user;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await authService.logout();
     setUser(null);
-    localStorage.removeItem(SESSION_KEY);
   }, []);
 
   const updateProfile = useCallback(

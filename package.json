@@ -8,6 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:db": "docker compose up -d postgres",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "vite",
+    "dev:all": "npm run dev:db && concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -26,6 +30,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.5.2",
+    "concurrently": "^10.0.4",
     "jsdom": "^29.1.1",
     "oxlint": "^1.71.0",
     "postcss": "^8.5.16",

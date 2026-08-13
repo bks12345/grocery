@@ -1,29 +1,40 @@
-import { getEffectiveCategories, getEffectiveCategory } from "./categoryStore";
-import { getEffectiveProducts } from "./productStore";
+import { apiGet } from './apiClient';
+import * as store from './categoryStore';
+import { getEffectiveProducts } from './productStore';
 
-const delay = (ms = 200) => new Promise((r) => setTimeout(r, ms));
-
-/** GET /api/categories */
 export async function getCategories() {
-  await delay();
-  return getEffectiveCategories();
+  try {
+    const res = await apiGet('/api/categories');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[categoryService] API failed, using fallback:', err.message);
+  }
+  return store.getEffectiveCategories();
 }
 
-/** GET /api/categories/:id */
 export async function getCategory(id) {
-  await delay();
-  const category = getEffectiveCategory(id);
-  if (!category) throw new Error("Category not found");
-  return category;
+  try {
+    const res = await apiGet(`/api/categories/${id}`);
+    if (res) return res;
+  } catch (err) {
+    console.warn('[categoryService] API failed for category id, using fallback:', err.message);
+  }
+  return store.getEffectiveCategory(id);
 }
 
-/** GET /api/categories/:id/product-count — used on the Categories browse page */
 export async function getCategoryProductCounts() {
-  await delay();
+  try {
+    const res = await apiGet('/api/categories/product-count');
+    if (res) return res;
+  } catch (err) {
+    console.warn('[categoryService] Product count API failed, using fallback:', err.message);
+  }
   const products = getEffectiveProducts();
   const counts = {};
-  for (const cat of getEffectiveCategories()) {
-    counts[cat.id] = products.filter((p) => p.category === cat.id).length;
-  }
+  products.forEach((p) => {
+    if (p.category) {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    }
+  });
   return counts;
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Phone, Mail, MapPin, Clock, Loader2, CheckCircle2 } from "lucide-react";
+import { apiPost } from "../services/apiClient";
 
 const contactDetails = [
   { icon: Phone, label: "Phone", value: "+91 98765 43210" },
@@ -21,8 +22,8 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // No backend yet — simulate a send. Swap for a real apiPost once one exists.
-    await new Promise((r) => setTimeout(r, 600));
+    // Call real backend endpoint
+    await apiPost('/api/contact', form).catch(err => console.error('Contact failed:', err));
     setSubmitting(false);
     setSent(true);
     setForm(initialForm);

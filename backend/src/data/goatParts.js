@@ -1,0 +1,18 @@
+export const goatPartsConfig = {
+  g_whole: { id: "g_whole", name: "Whole Goat", price: 1100 },
+  g_leg: { id: "g_leg", name: "Leg", price: 1200 },
+  g_shoulder: { id: "g_shoulder", name: "Shoulder", price: 1050 },
+  g_ribs: { id: "g_ribs", name: "Ribs", price: 950 },
+  g_loin: { id: "g_loin", name: "Loin", price: 1150 },
+  g_neck: { id: "g_neck", name: "Neck", price: 800 },
+  g_liver: { id: "g_liver", name: "Liver", price: 650 },
+  g_heart: { id: "g_heart", name: "Heart", price: 600 },
+  g_kidney: { id: "g_kidney", name: "Kidney", price: 600 },
+  g_brain: { id: "g_brain", name: "Brain", price: 500 },
+  g_head: { id: "g_head", name: "Head", price: 700 },
+  g_trotters: { id: "g_trotters", name: "Trotters", price: 550 },
+  g_intestine: { id: "g_intestine", name: "Intestine", price: 450 },
+  g_fat: { id: "g_fat", name: "Fat", price: 400 },
+  g_lung: { id: "g_lung", name: "Lung", price: 450 },
+  g_tail: { id: "g_tail", name: "Tail", price: 300 },
+};
