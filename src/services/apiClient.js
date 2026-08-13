@@ -7,7 +7,9 @@
 // component that already uses the service functions keeps working
 // unchanged, because the function signatures and return shapes stay the same.
 
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
+  ? import.meta.env.VITE_API_BASE_URL 
+  : "http://localhost:3001";
 
 async function request(path, options = {}) {
   // Tokens are now stored in HttpOnly cookies, so we don't need to manually read them
