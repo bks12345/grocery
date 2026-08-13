@@ -12,6 +12,10 @@ RUN npm ci
 # Copy the rest of the application
 COPY . .
 
+# Pass in the build argument from docker-compose
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Build the frontend application
 RUN npm run build
 
