@@ -66,6 +66,38 @@ async function main() {
     });
   }
 
+  console.log('Seeding Email Templates...');
+  const templates = [
+    {
+      type: 'order_confirmation',
+      subject: 'Order Confirmation - #{{orderId}}',
+      bodyHtml: '<h1>Thank you for your order!</h1><p>Your order #{{orderId}} has been confirmed.</p><h2>Order Summary</h2>{{orderSummaryHTML}}<p><strong>Total: $\{{total}}</strong></p><p>Estimated Delivery: {{estimatedDelivery}}</p>',
+    },
+    {
+      type: 'admin_new_order',
+      subject: 'New Order Received - #{{orderId}}',
+      bodyHtml: '<h1>New Order Received!</h1><p>Order #{{orderId}} has been placed.</p><p>Total: $\{{total}}</p><p>Method: {{deliveryMethod}}</p>',
+    },
+    {
+      type: 'order_status',
+      subject: 'Order Status Update - #{{orderId}}',
+      bodyHtml: '<h1>Order Status Update</h1><p>Your order #{{orderId}} is now: <strong>{{status}}</strong>.</p>',
+    },
+    {
+      type: 'otp',
+      subject: 'Your Login Code',
+      bodyHtml: '<h2>Your OTP Code</h2><p>Your verification code is: <strong>{{otp}}</strong></p>',
+    }
+  ];
+
+  for (const template of templates) {
+    await prisma.emailTemplate.upsert({
+      where: { type: template.type },
+      update: {},
+      create: template,
+    });
+  }
+
   console.log('Done seeding mock data!');
 }
 
