@@ -115,6 +115,7 @@ grocery/
   - Added `/api/auth/reset-password` endpoint with OTP verification and 10-minute expiration handling.
   - Updated frontend `ForgotPassword.jsx` to support multi-step OTP inputs and error handling.
   - Hardened backend security by integrating **Helmet** for HTTP security headers and **express-rate-limit** to protect authentication endpoints from brute-force attacks.
+  - Refined auth rate limiting: configured `skipSuccessfulRequests: true` to avoid penalizing legitimate logins and made the threshold environment-aware (`100` reqs/15 min in dev vs `30` in prod, or configurable via `AUTH_RATE_LIMIT_MAX`).
   - Tightened CORS configuration to explicitly whitelist the frontend origin.
   - Enforced authentication on checkout flow: Users are now redirected to the Login page when attempting to proceed to checkout from the cart, and the `POST /api/orders` backend route is now strictly protected.
 - **Order Email Notifications**:

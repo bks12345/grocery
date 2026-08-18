@@ -21,7 +21,10 @@ const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 // Rate limiting for auth routes to prevent brute-force attacks
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
+  max: process.env.AUTH_RATE_LIMIT_MAX
+    ? parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10)
+    : (process.env.NODE_ENV === 'production' ? 30 : 100), // More permissive in development (100 requests / 15 min)
+  skipSuccessfulRequests: true, // Only failed attempts count against the rate limit
   message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
