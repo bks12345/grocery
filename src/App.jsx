@@ -29,16 +29,43 @@ import GroceryEstimate from "./pages/GroceryEstimate";
 import BookGoat from "./pages/BookGoat";
 import OrderFromNepal from "./pages/OrderFromNepal";
 
-// Admin panel (and its recharts dependency) is only downloaded if someone
-// actually navigates to /admin — regular shoppers never pay for its bundle.
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
-const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
-const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
-const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
-const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
-const AdminTemplates = lazy(() => import("./pages/admin/AdminTemplates"));
+// Safe lazy loader that automatically refreshes the page if a new deployment
+// has updated chunk hashes, eliminating stale chunk MIME/import errors.
+function lazyWithRetry(componentImport) {
+  return lazy(async () => {
+    const pageRefreshed = JSON.parse(
+      window.sessionStorage.getItem("app_chunk_auto_refreshed") || "false"
+    );
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem("app_chunk_auto_refreshed", "false");
+      return component;
+    } catch (error) {
+      if (!pageRefreshed) {
+        window.sessionStorage.setItem("app_chunk_auto_refreshed", "true");
+        window.location.reload();
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+}
+
+// Admin panel is code-split with auto-retry
+const AdminLayout = lazyWithRetry(() => import("./components/admin/AdminLayout"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/admin/AdminDashboard"));
+const AdminProducts = lazyWithRetry(() => import("./pages/admin/AdminProducts"));
+const AdminCategories = lazyWithRetry(() => import("./pages/admin/AdminCategories"));
+const AdminOrders = lazyWithRetry(() => import("./pages/admin/AdminOrders"));
+const AdminNepalOrders = lazyWithRetry(() => import("./pages/admin/AdminNepalOrders"));
+const AdminGoatStock = lazyWithRetry(() => import("./pages/admin/AdminGoatStock"));
+const AdminFestivalSale = lazyWithRetry(() => import("./pages/admin/AdminFestivalSale"));
+const AdminCustomizedGrocery = lazyWithRetry(() => import("./pages/admin/AdminCustomizedGrocery"));
+const AdminDeliveryZones = lazyWithRetry(() => import("./pages/admin/AdminDeliveryZones"));
+const AdminCustomers = lazyWithRetry(() => import("./pages/admin/AdminCustomers"));
+const AdminCoupons = lazyWithRetry(() => import("./pages/admin/AdminCoupons"));
+const AdminTemplates = lazyWithRetry(() => import("./pages/admin/AdminTemplates"));
+const AdminCMS = lazyWithRetry(() => import("./pages/admin/AdminCMS"));
 
 function AdminFallback() {
   return (
@@ -91,9 +118,15 @@ export default function App() {
           <Route path="products" element={<Suspense fallback={<AdminFallback />}><AdminProducts /></Suspense>} />
           <Route path="categories" element={<Suspense fallback={<AdminFallback />}><AdminCategories /></Suspense>} />
           <Route path="orders" element={<Suspense fallback={<AdminFallback />}><AdminOrders /></Suspense>} />
+          <Route path="nepal-orders" element={<Suspense fallback={<AdminFallback />}><AdminNepalOrders /></Suspense>} />
+          <Route path="goat-stock" element={<Suspense fallback={<AdminFallback />}><AdminGoatStock /></Suspense>} />
+          <Route path="festival-sale" element={<Suspense fallback={<AdminFallback />}><AdminFestivalSale /></Suspense>} />
+          <Route path="customized-grocery" element={<Suspense fallback={<AdminFallback />}><AdminCustomizedGrocery /></Suspense>} />
+          <Route path="delivery-zones" element={<Suspense fallback={<AdminFallback />}><AdminDeliveryZones /></Suspense>} />
           <Route path="customers" element={<Suspense fallback={<AdminFallback />}><AdminCustomers /></Suspense>} />
           <Route path="coupons" element={<Suspense fallback={<AdminFallback />}><AdminCoupons /></Suspense>} />
           <Route path="templates" element={<Suspense fallback={<AdminFallback />}><AdminTemplates /></Suspense>} />
+          <Route path="cms" element={<Suspense fallback={<AdminFallback />}><AdminCMS /></Suspense>} />
         </Route>
 
         <Route path="*" element={<ComingSoon title="Page Not Found" />} />

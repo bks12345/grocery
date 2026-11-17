@@ -1,23 +1,15 @@
-import { Heart, Plus, Star, Check } from "lucide-react";
+import { Heart, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import PriceTag from "./PriceTag";
 import SafeImage from "./SafeImage";
-import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { getProductImage, getProductImageFallback } from "../../data/images";
+import { getDiscountPercent } from "../../utils/discount";
 
 export default function ProductListItem({ product }) {
-  const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const saved = isInWishlist(product.id);
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = () => {
-    addItem(product, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-  };
+  const discountPercent = getDiscountPercent(product);
 
   return (
     <div className="card-elevated rounded-3xl p-4 flex items-center gap-4">
@@ -34,6 +26,11 @@ export default function ProductListItem({ product }) {
           fallbackClassName="w-full h-full"
         />
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+          {discountPercent > 0 && !product.isCombo ? (
+            <span className={`text-[10px] font-bold bg-tomato-500 text-white px-2 py-0.5 rounded-full shadow-soft ${discountPercent >= 50 ? "animate-pulse" : ""}`}>
+              {discountPercent}% OFF
+            </span>
+          ) : null}
           {product.isCombo && (
             <span className="text-[10px] font-semibold bg-basil-600 text-white px-2 py-0.5 rounded-full">
               Combo
@@ -42,11 +39,6 @@ export default function ProductListItem({ product }) {
           {product.isBulk && (
             <span className="text-[10px] font-semibold bg-mango-400 text-basil-900 px-2 py-0.5 rounded-full">
               Bulk
-            </span>
-          )}
-          {product.oldPrice && (
-            <span className="text-[10px] font-semibold bg-tomato-500 text-white px-2 py-0.5 rounded-full">
-              Sale
             </span>
           )}
         </div>
@@ -116,17 +108,13 @@ export default function ProductListItem({ product }) {
               >
                 <Heart size={15} className={saved ? "fill-tomato-500 text-tomato-500" : "text-ink-soft"} />
               </button>
-              <button
-                onClick={handleAdd}
-                aria-label={`Add ${product.name} to cart`}
-                className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-                  added
-                    ? "bg-basil-700 scale-105"
-                    : "bg-basil-600 hover:bg-basil-700 hover:shadow-glow"
-                } text-white`}
+              <Link
+                to={`/product/${product.id}`}
+                aria-label={`View ${product.name}`}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-basil-600 hover:bg-basil-700 hover:shadow-glow transition-all text-white"
               >
-                {added ? <Check size={15} /> : <Plus size={16} />}
-              </button>
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </>
         )}

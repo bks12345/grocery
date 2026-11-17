@@ -8,15 +8,20 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:db": "docker compose up -d postgres",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "vite",
-    "dev:all": "npm run dev:db && concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "firebase:emulate": "npx -y firebase-tools@latest emulators:start",
+    "firebase:deploy": "npm run build && npx -y firebase-tools@latest deploy --only hosting,firestore:rules,storage --project daalbhat-grocery",
+    "firebase:deploy:all": "npm run build && npx -y firebase-tools@latest deploy --project daalbhat-grocery",
+    "db:seed-firestore": "node scripts/seedFirestore.js",
+    "db:backup": "node scripts/backupFirestore.js",
+    "db:clean-products": "node scripts/cleanProducts.js"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "dotenv": "^16.4.7",
+    "firebase": "^11.4.0",
     "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -30,7 +35,6 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.5.2",
-    "concurrently": "^10.0.4",
     "jsdom": "^29.1.1",
     "oxlint": "^1.71.0",
     "postcss": "^8.5.16",

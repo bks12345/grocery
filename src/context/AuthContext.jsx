@@ -1,47 +1,75 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 import * as authService from "../services/authService";
 
-// Session (which user is logged in) is kept client-side and persisted to
-// localStorage, same reasoning as Cart/Wishlist — but note this only
-// stores a user id + token, never a password. The actual account data
-// (and validation) lives in authService's mock "users table" for now, and
-// would live in a real backend/database once one exists — this context
-// would then just be holding a real session token instead of a demo one.
-
 const AuthContext = createContext(null);
-const SESSION_KEY = "daalbhat_session";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while restoring session on first load
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Restore session on first load
+  // Synchronize state with Firebase Auth
   useEffect(() => {
-    authService
-      .getCurrentUser()
-      .then(setUser)
-      .catch(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (!fbUser) {
         setUser(null);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+        setLoading(false);
+        return;
+      }
 
-  const persistSession = (loggedInUser) => {
-    setUser(loggedInUser);
-  };
+      try {
+        const userDocRef = doc(db, "users", fbUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        const profileData = userDoc.exists() ? userDoc.data() : {};
+
+        if (profileData.blocked) {
+          await authService.logout();
+          setUser(null);
+        } else {
+          setUser({
+            id: fbUser.uid,
+            uid: fbUser.uid,
+            name: profileData.name || fbUser.displayName || "User",
+            email: fbUser.email,
+            phone: profileData.phone || fbUser.phoneNumber || "",
+            role: profileData.role || "customer",
+            blocked: !!profileData.blocked,
+            createdAt: profileData.createdAt || new Date().toISOString(),
+            addresses: profileData.addresses || [],
+            ...profileData,
+          });
+        }
+      } catch (err) {
+        console.warn("[AuthContext] Error fetching profile from Firestore:", err.message);
+        setUser({
+          id: fbUser.uid,
+          uid: fbUser.uid,
+          name: fbUser.displayName || "User",
+          email: fbUser.email,
+          role: "customer",
+        });
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const login = useCallback(async (email, password) => {
     setError(null);
     const response = await authService.login({ email, password });
-    persistSession(response.user);
+    setUser(response.user);
     return response.user;
   }, []);
 
   const register = useCallback(async (data) => {
     setError(null);
     const response = await authService.register(data);
-    persistSession(response.user);
+    setUser(response.user);
     return response.user;
   }, []);
 
@@ -52,12 +80,20 @@ export function AuthProvider({ children }) {
 
   const updateProfile = useCallback(
     async (updates) => {
+      if (!user) return null;
       const updated = await authService.updateProfile(user.id, updates);
       setUser(updated);
       return updated;
     },
     [user]
   );
+
+  const loginWithGoogle = useCallback(async () => {
+    setError(null);
+    const response = await authService.loginWithGoogle();
+    setUser(response.user);
+    return response.user;
+  }, []);
 
   const value = {
     user,
@@ -66,6 +102,7 @@ export function AuthProvider({ children }) {
     loading,
     error,
     login,
+    loginWithGoogle,
     register,
     logout,
     updateProfile,

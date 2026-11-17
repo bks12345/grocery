@@ -1,143 +1,139 @@
-import { apiGet } from './apiClient';
-import * as store from './productStore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../firebase/config";
+import * as store from "./productStore";
 
 export async function queryProducts(params = {}) {
   try {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null && value !== '') {
-        if (Array.isArray(value)) {
-          query.append(key, value.join(','));
-        } else {
-          query.append(key, value);
-        }
-      }
+    const snap = await getDocs(collection(db, "products"));
+    let items = snap.docs.map((d) => ({
+      ...d.data(),
+      id: d.id,
+      firestoreId: d.id,
+    }));
+
+    if (params.category && params.category !== "all") {
+      items = items.filter(
+        (p) =>
+          p.category === params.category ||
+          p.categoryId === params.category ||
+          (p.category && (p.category.slug === params.category || p.category.id === params.category))
+      );
     }
-    const res = await apiGet(`/api/products?${query.toString()}`);
-    if (res && (res.items || Array.isArray(res))) {
-      return {
-        items: Array.isArray(res) ? res : res.items,
-        total: Array.isArray(res) ? res.length : (res.total || res.items.length),
-      };
+    if (params.search) {
+      const s = params.search.toLowerCase();
+      items = items.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(s) ||
+          p.description?.toLowerCase().includes(s) ||
+          p.brand?.toLowerCase().includes(s)
+      );
     }
+    if (params.featuredOnly) items = items.filter((p) => p.isFeatured || p.featured);
+    if (params.bestSellerOnly) items = items.filter((p) => p.isBestSeller || p.bestSeller);
+    if (params.bulkOnly) items = items.filter((p) => p.isBulk);
+    if (params.comboOnly) items = items.filter((p) => p.isCombo);
+    if (params.festivalSaleOnly) items = items.filter((p) => p.isFestivalSale || p.onFestivalSale);
+    if (params.discountOnly) {
+      items = items.filter(
+        (p) =>
+          (p.discountPercent && Number(p.discountPercent) > 0) ||
+          p.isHalfPrice ||
+          (p.oldPrice && Number(p.oldPrice) > Number(p.price))
+      );
+    }
+
+    if (params.brand && params.brand !== "all") {
+      items = items.filter((p) => p.brand === params.brand);
+    }
+    if (params.minPrice !== undefined && params.minPrice !== "") {
+      items = items.filter((p) => Number(p.price) >= Number(params.minPrice));
+    }
+    if (params.maxPrice !== undefined && params.maxPrice !== "") {
+      items = items.filter((p) => Number(p.price) <= Number(params.maxPrice));
+    }
+
+    return { items, total: items.length };
   } catch (err) {
-    console.warn('[productService] API request failed, using local store fallback:', err.message);
+    console.warn("[productService] Firestore query failed:", err.message);
+    return { items: [], total: 0 };
   }
-
-  // Resilient fallback using productStore
-  let items = store.getEffectiveProducts();
-
-  if (params.category && params.category !== 'all') {
-    items = items.filter((p) => p.category === params.category);
-  }
-  if (params.search) {
-    const s = params.search.toLowerCase();
-    items = items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(s) ||
-        (p.description && p.description.toLowerCase().includes(s))
-    );
-  }
-  if (params.featuredOnly) items = items.filter((p) => p.featured);
-  if (params.bestSellerOnly) items = items.filter((p) => p.bestSeller);
-  if (params.bulkOnly) items = items.filter((p) => p.isBulk);
-  if (params.comboOnly) items = items.filter((p) => p.isCombo);
-  if (params.festivalSaleOnly) items = items.filter((p) => p.onFestivalSale);
-
-  if (params.brand && params.brand !== 'all') {
-    items = items.filter((p) => p.brand === params.brand);
-  }
-  if (params.minPrice !== undefined && params.minPrice !== '') {
-    items = items.filter((p) => p.price >= Number(params.minPrice));
-  }
-  if (params.maxPrice !== undefined && params.maxPrice !== '') {
-    items = items.filter((p) => p.price <= Number(params.maxPrice));
-  }
-
-  return { items, total: items.length };
 }
 
 export async function getProduct(id) {
+  if (!id) return null;
   try {
-    const res = await apiGet(`/api/products/${id}`);
-    if (res) return res;
+    const docSnap = await getDoc(doc(db, "products", String(id)));
+    if (docSnap.exists()) {
+      return { ...docSnap.data(), id: docSnap.id, firestoreId: docSnap.id };
+    }
+    return null;
   } catch (err) {
-    console.warn('[productService] API request failed for product id, using fallback:', err.message);
+    console.warn("[productService] Get product from Firestore failed:", err.message);
+    return null;
   }
-  return store.getEffectiveProduct(id);
 }
 
-export async function getRelatedProducts(product, limit = 4) {
-  try {
-    const res = await apiGet(`/api/products/${product.id}/related?limit=${limit}`);
-    if (res) return res;
-  } catch (err) {
-    console.warn('[productService] Related products API failed, using fallback:', err.message);
-  }
-  const all = store.getEffectiveProducts();
-  return all
-    .filter((p) => p.id !== product.id && p.category === product.category)
-    .slice(0, limit);
+export const getProductById = getProduct;
+
+export async function getFeaturedProducts(limitCount = 8) {
+  const { items } = await queryProducts({ featuredOnly: true });
+  return items.slice(0, limitCount);
 }
 
-export async function getFeaturedProducts() {
-  const res = await queryProducts({ featuredOnly: true });
-  return res.items || [];
+export async function getBestSellers(limitCount = 8) {
+  const { items } = await queryProducts({ bestSellerOnly: true });
+  return items.slice(0, limitCount);
 }
 
-export async function getBestSellers() {
-  const res = await queryProducts({ bestSellerOnly: true });
-  return res.items || [];
+export async function getFestivalSaleProducts(limitCount = 8) {
+  const { items } = await queryProducts({ festivalSaleOnly: true });
+  return items.slice(0, limitCount);
 }
 
-export async function getBulkProducts() {
-  const res = await queryProducts({ bulkOnly: true });
-  return res.items || [];
+export async function getBulkProducts(limitCount = 8) {
+  const { items } = await queryProducts({ bulkOnly: true });
+  return items.slice(0, limitCount);
 }
 
-export async function getComboDeals() {
-  const res = await queryProducts({ comboOnly: true });
-  return res.items || [];
+export async function getComboProducts(limitCount = 8) {
+  const { items } = await queryProducts({ comboOnly: true });
+  return items.slice(0, limitCount);
 }
 
-export async function getFestivalSaleProducts() {
-  const res = await queryProducts({ festivalSaleOnly: true });
-  return res.items || [];
-}
+export const getComboDeals = getComboProducts;
 
 export async function getComboItemDetails(product) {
-  try {
-    const res = await apiGet(`/api/products/${product.id}/combo-items`);
-    if (res) return res;
-  } catch (err) {
-    console.warn('[productService] Combo details API failed, using fallback:', err.message);
-  }
-  if (!product.comboItemIds) return [];
-  const all = store.getEffectiveProducts();
-  return product.comboItemIds
-    .map((itemId) => all.find((p) => p.id === itemId))
+  if (!product?.comboItems?.length) return [];
+  const { items } = await queryProducts();
+  return product.comboItems
+    .map((itemIdentifier) =>
+      items.find(
+        (p) =>
+          String(p.id) === String(itemIdentifier) ||
+          p.name?.toLowerCase() === String(itemIdentifier).toLowerCase()
+      )
+    )
     .filter(Boolean);
 }
 
+export async function getRelatedProducts(productId, categoryId, limitCount = 4) {
+  const { items } = await queryProducts({ category: categoryId });
+  return items.filter((p) => p.id !== productId).slice(0, limitCount);
+}
+
 export async function getBrands() {
-  try {
-    const res = await apiGet('/api/products/brands');
-    if (res) return res;
-  } catch (err) {
-    console.warn('[productService] Brands API failed, using fallback:', err.message);
-  }
-  const all = store.getEffectiveProducts();
-  const brands = Array.from(new Set(all.map((p) => p.brand).filter(Boolean))).sort();
-  return brands;
+  const { items } = await queryProducts();
+  const brands = new Set(items.map((p) => p.brand).filter(Boolean));
+  return Array.from(brands).sort();
 }
 
 export async function getMaxPrice() {
-  try {
-    const res = await apiGet('/api/products/price-range');
-    if (res && res.maxPrice) return res.maxPrice;
-  } catch (err) {
-    console.warn('[productService] Max price API failed, using fallback:', err.message);
-  }
-  const all = store.getEffectiveProducts();
-  return Math.ceil(Math.max(...all.map((p) => p.price), 100));
+  const { items } = await queryProducts();
+  if (!items.length) return 100;
+  return Math.ceil(Math.max(...items.map((p) => p.price || 0)));
 }

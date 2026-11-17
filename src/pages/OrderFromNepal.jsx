@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   User,
   MapPin,
@@ -19,7 +20,10 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-import { apiPost } from "../services/apiClient";
+import { useEffect } from "react";
+import * as nepalOrderService from "../services/nepalOrderService";
+import { useStoreFeatures } from "../hooks/useStoreFeatures";
+import { useAuth } from "../context/AuthContext";
 
 const initialCustomer = { fullName: "", phone: "", email: "" };
 const initialAddress = { fullAddress: "", province: "", district: "", city: "" };
@@ -37,6 +41,8 @@ const whyOrderWithUs = [
 ];
 
 export default function OrderFromNepal() {
+  const { user } = useAuth();
+  const { nepalOrderActive, loading: featuresLoading } = useStoreFeatures();
   const [customer, setCustomer] = useState(initialCustomer);
   const [address, setAddress] = useState(initialAddress);
   const [products, setProducts] = useState([emptyProductRow()]);
@@ -44,6 +50,16 @@ export default function OrderFromNepal() {
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setCustomer((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user.name || "",
+      email: prev.email || user.email || "",
+      phone: prev.phone || user.phone || "",
+    }));
+  }, [user]);
 
   const updateCustomer = (field) => (e) =>
     setCustomer((prev) => ({ ...prev, [field]: e.target.value }));
@@ -65,17 +81,22 @@ export default function OrderFromNepal() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // Call real backend endpoint
     const payload = {
       senderName: customer.fullName,
       senderEmail: customer.email,
       senderPhone: customer.phone,
-      recipientName: customer.fullName, // assuming the same for this form
+      recipientName: customer.fullName,
       recipientPhone: customer.phone,
       recipientAddress: address.fullAddress,
-      items: products.filter(p => p.name.trim()),
+      items: products.filter((p) => p.name.trim()),
+      notes,
+      status: "pending",
     };
-    await apiPost('/api/nepal-orders', payload).catch(err => console.error('Nepal order failed:', err));
+    try {
+      await nepalOrderService.createNepalOrder(payload);
+    } catch (err) {
+      console.warn("[OrderFromNepal] Order creation warning:", err.message);
+    }
     setSubmitting(false);
     setSubmitted(true);
   };
@@ -88,6 +109,36 @@ export default function OrderFromNepal() {
     setConfirmed(false);
     setSubmitted(false);
   };
+
+  if (!featuresLoading && !nepalOrderActive) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full card-elevated rounded-3xl p-8 text-center bg-white border border-basil-100 shadow-soft-lg">
+          <div className="w-16 h-16 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center mx-auto mb-4 text-2xl">
+            🇳🇵
+          </div>
+          <h1 className="font-display text-2xl font-bold text-ink">Order from Nepal is Temporarily Paused</h1>
+          <p className="text-ink-soft text-sm mt-3 leading-relaxed">
+            We are currently not accepting new custom sourcing or cross-border delivery orders from Nepal at this moment. Please check back soon or explore our in-store grocery catalogue!
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/shop"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-600 text-white text-sm font-semibold hover:bg-basil-700 hover:shadow-glow transition-all shadow-soft"
+            >
+              Browse Products
+            </Link>
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-50 text-basil-700 text-sm font-semibold hover:bg-basil-100 transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filledProducts = products.filter((p) => p.name.trim());
 
@@ -299,7 +350,7 @@ export default function OrderFromNepal() {
 
                   <button
                     type="submit"
-                    disabled={submitting || !confirmed}
+                    disabled={submitting || !confirmed || filledProducts.length === 0}
                     className="flex items-center justify-center gap-2 bg-basil-600 text-white py-3.5 rounded-full font-medium hover:bg-basil-700 hover:shadow-glow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? (

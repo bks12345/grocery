@@ -11,6 +11,8 @@ import {
   ShoppingCart,
   Lightbulb,
   MessageCircleQuestion,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import CustomizeGroceryModal from "../components/ui/CustomizeGroceryModal";
@@ -18,6 +20,7 @@ import ProductCard from "../components/ui/ProductCard";
 import { ProductCardSkeleton } from "../components/ui/Skeletons";
 import Slider from "../components/ui/Slider";
 import { useAsync } from "../hooks/useAsync";
+import { useStoreFeatures } from "../hooks/useStoreFeatures";
 import * as productService from "../services/productService";
 
 const foodCategoryLabels = {
@@ -31,6 +34,7 @@ export default function GroceryEstimate() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { customizeGroceryActive } = useStoreFeatures();
   const [tab, setTab] = useState("list"); // 'list' | 'breakdown'
   const [editOpen, setEditOpen] = useState(false);
   const [addedAll, setAddedAll] = useState(false);
@@ -38,6 +42,83 @@ export default function GroceryEstimate() {
     () => productService.getComboDeals(),
     []
   );
+
+  const estimateItems = state?.result?.items;
+  const { data: recommendedProducts, loading: recommendedLoading } = useAsync(
+    async () => {
+      try {
+        const { items: allStoreProducts } = await productService.queryProducts();
+        if (!allStoreProducts || allStoreProducts.length === 0) return [];
+
+        const estimateProductIds = new Set(
+          (estimateItems || []).map((i) => String(i.productId || i.id || "")).filter(Boolean)
+        );
+        const estimateNames = new Set(
+          (estimateItems || []).map((i) => (i.name || "").toLowerCase().trim()).filter(Boolean)
+        );
+
+        // Filter out items already in the estimate & out of stock items
+        const candidates = allStoreProducts.filter((p) => {
+          if (!p || p.inStock === false) return false;
+          const pId = String(p.id || "");
+          const pName = (p.name || "").toLowerCase().trim();
+          return !estimateProductIds.has(pId) && !estimateNames.has(pName);
+        });
+
+        // Prioritize featured, best sellers, high ratings, and half-price/sale deals
+        const sorted = candidates.sort((a, b) => {
+          const scoreA =
+            (a.isFeatured || a.featured ? 4 : 0) +
+            (a.isBestSeller || a.bestSeller ? 3 : 0) +
+            (a.isHalfPrice || a.oldPrice ? 2 : 0) +
+            (Number(a.rating) || 0);
+          const scoreB =
+            (b.isFeatured || b.featured ? 4 : 0) +
+            (b.isBestSeller || b.bestSeller ? 3 : 0) +
+            (b.isHalfPrice || b.oldPrice ? 2 : 0) +
+            (Number(b.rating) || 0);
+          return scoreB - scoreA;
+        });
+
+        return sorted.slice(0, 6);
+      } catch (err) {
+        console.warn("[GroceryEstimate] Error loading recommendations:", err);
+        return [];
+      }
+    },
+    [estimateItems]
+  );
+
+  // If service has been paused/deactivated by admin
+  if (!customizeGroceryActive) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full card-elevated rounded-3xl p-8 text-center bg-white border border-basil-100 shadow-soft-lg">
+          <div className="w-16 h-16 rounded-full bg-basil-50 text-basil-700 flex items-center justify-center mx-auto mb-4">
+            <Salad size={32} />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-ink">Customize Grocery is Temporarily Paused</h1>
+          <p className="text-ink-soft text-sm mt-3 leading-relaxed">
+            Our personalized grocery planning service is currently paused for updates. Please browse our fresh grocery catalog or check back soon.
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/shop"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-600 text-white text-sm font-semibold hover:bg-basil-700 hover:shadow-glow transition-all shadow-soft"
+            >
+              Browse Grocery Shop
+            </Link>
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-50 text-basil-700 text-sm font-semibold hover:bg-basil-100 transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Guard: someone landed here directly (refresh, shared link) without
   // having gone through the modal — send them back to build an estimate.
@@ -78,12 +159,13 @@ export default function GroceryEstimate() {
     items.forEach((item) => {
       addItem(
         {
-          id: `grocery_${item.key}`,
+          id: item.productId || `grocery_${item.key}`,
           name: item.name,
-          price: Math.max(1, Math.round(item.estimatedPrice / item.quantity)),
+          price: item.unitPrice || Math.max(1, Math.round(item.estimatedPrice / item.quantity)),
+          image: item.image,
           weight: `1 ${item.unit}`,
-          category: "grocery-estimate",
-          inStock: true,
+          category: item.category || "grocery-estimate",
+          inStock: item.inStock !== false,
         },
         Math.max(1, Math.round(item.quantity))
       );
@@ -173,7 +255,25 @@ export default function GroceryEstimate() {
                 <tbody>
                   {items.map((item) => (
                     <tr key={item.key} className="border-t border-basil-50">
-                      <td className="px-4 sm:px-5 py-3 text-ink font-medium">{item.name}</td>
+                      <td className="px-4 sm:px-5 py-3 text-ink font-medium">
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-9 h-9 rounded-xl object-cover bg-cream shrink-0 border border-basil-100"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-basil-50 flex items-center justify-center shrink-0 text-basil-600 font-bold text-xs">
+                              {item.name.charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-ink leading-snug">{item.name}</p>
+                            <span className="text-xs text-ink-soft/60">{item.category}</span>
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-4 sm:px-5 py-3 text-ink-soft">
                         {item.quantity} <span className="sm:hidden text-ink-soft/60">{item.unit}</span>
                       </td>
@@ -228,6 +328,46 @@ export default function GroceryEstimate() {
             <p className="text-xs text-basil-700">
               This is an estimated list. You can add, remove or change items as per your need.
             </p>
+          </div>
+
+          {/* Recommended Products Below the List */}
+          <div className="mt-8 pt-6 border-t border-basil-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div>
+                <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
+                  <Sparkles size={18} className="text-mango-500" />
+                  Recommended Products
+                </h2>
+                <p className="text-xs text-ink-soft mt-0.5">
+                  Frequently paired groceries, fresh pantry staples & complementary essentials.
+                </p>
+              </div>
+              <Link
+                to="/shop"
+                className="group inline-flex items-center gap-1 text-xs font-semibold text-basil-600 hover:text-basil-700 self-start sm:self-auto"
+              >
+                Browse catalog
+                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+
+            {recommendedLoading || !recommendedProducts ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : recommendedProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recommendedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-ink-soft bg-white rounded-2xl p-4 shadow-soft">
+                No additional recommendations at this time.
+              </p>
+            )}
           </div>
         </div>
 

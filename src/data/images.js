@@ -55,8 +55,23 @@ export const getCategoryImageFallback = (categoryId) =>
   categoryImagesFallback[categoryId];
 
 // Products borrow their category's photo unless they have their own
-// `image` field set in data/products.js.
-export const getProductImage = (product) =>
-  product.image || categoryImages[product.category];
-export const getProductImageFallback = (product) =>
-  categoryImagesFallback[product.category] || product.fallbackImage;
+// `images` array or `image` field set.
+export const getProductImage = (product) => {
+  if (!product) return "";
+  if (Array.isArray(product.images) && product.images.length > 0 && product.images[0]) {
+    return product.images[0];
+  }
+  const catKey = typeof product.category === "object" && product.category !== null
+    ? (product.category.id || product.category.slug)
+    : product.category;
+  return product.image || categoryImages[catKey] || "";
+};
+
+export const getProductImageFallback = (product) => {
+  if (!product) return "";
+  const catKey = typeof product.category === "object" && product.category !== null
+    ? (product.category.id || product.category.slug)
+    : product.category;
+  return categoryImagesFallback[catKey] || product.fallbackImage || "";
+};
+

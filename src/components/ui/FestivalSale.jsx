@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, PartyPopper, Sparkles, Plus, Check, ArrowRight } from "lucide-react";
-import { festivalSale } from "../../data/festivalSale";
+import { ChevronLeft, ChevronRight, PartyPopper, Sparkles, ArrowRight } from "lucide-react";
+import { festivalSale as defaultFestivalSale } from "../../data/festivalSale";
+import { getFestivalSaleConfig } from "../../services/festivalSaleService";
 import { useCountdown } from "../../hooks/useCountdown";
 import { useAsync } from "../../hooks/useAsync";
 import * as productService from "../../services/productService";
 import { getProductImage, getProductImageFallback } from "../../data/images";
-import { useCart } from "../../context/CartContext";
 import PriceTag from "./PriceTag";
 import SafeImage from "./SafeImage";
+import FestiveIcon from "./FestiveIcon";
 import { ProductGridSkeleton } from "./Skeletons";
+import { getDiscountPercent } from "../../utils/discount";
 
 function CountdownUnit({ value, label }) {
   return (
@@ -23,23 +25,13 @@ function CountdownUnit({ value, label }) {
 }
 
 function SaleProductCard({ product }) {
-  const { addItem } = useCart();
-  const [added, setAdded] = useState(false);
-  const discountPercent = product.oldPrice
-    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-    : 0;
-
-  const handleAdd = () => {
-    addItem(product, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-  };
+  const discountPercent = getDiscountPercent(product);
 
   return (
     <div className="card-elevated group relative flex flex-col rounded-3xl overflow-hidden bg-white shrink-0 snap-start w-[78%] sm:w-[48%] md:w-[31%] lg:w-[18.4%]">
       {discountPercent > 0 && (
         <span className="absolute top-3 left-3 z-10 text-xs font-bold bg-tomato-500 text-white px-2.5 py-1 rounded-full shadow-soft">
-          -{discountPercent}%
+          {discountPercent}% OFF
         </span>
       )}
 
@@ -62,17 +54,13 @@ function SaleProductCard({ product }) {
 
         <div className="mt-auto pt-2 flex items-center justify-between gap-2">
           <PriceTag price={product.price} oldPrice={product.oldPrice} size="sm" />
-          <button
-            onClick={handleAdd}
-            aria-label={`Add ${product.name} to cart`}
-            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-              added
-                ? "bg-basil-700 scale-105"
-                : "bg-basil-600 hover:bg-basil-700 hover:shadow-glow hover:-translate-y-0.5"
-            } text-white`}
+          <Link
+            to={`/product/${product.id}`}
+            aria-label={`View ${product.name}`}
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-basil-600 hover:bg-basil-700 hover:shadow-glow hover:-translate-y-0.5 transition-all text-white group-hover:scale-105"
           >
-            {added ? <Check size={16} /> : <Plus size={18} />}
-          </button>
+            <ArrowRight size={16} />
+          </Link>
         </div>
       </div>
     </div>
@@ -80,11 +68,20 @@ function SaleProductCard({ product }) {
 }
 
 export default function FestivalSale() {
-  const timeLeft = useCountdown(festivalSale.endDate);
+  const [saleConfig, setSaleConfig] = useState(defaultFestivalSale);
+  const timeLeft = useCountdown(saleConfig.endDate);
   const { data: saleProducts, loading } = useAsync(
     () => productService.getFestivalSaleProducts(),
     []
   );
+
+  useEffect(() => {
+    getFestivalSaleConfig()
+      .then((data) => {
+        if (data) setSaleConfig(data);
+      })
+      .catch((err) => console.warn("[FestivalSale] Error loading config:", err));
+  }, []);
 
   const trackRef = useRef(null);
   const [paused, setPaused] = useState(false);
@@ -119,7 +116,7 @@ export default function FestivalSale() {
   }, []);
 
   // Hide entirely once the sale is off or has ended — no empty space left behind.
-  if (!festivalSale.active || timeLeft.expired) return null;
+  if (!saleConfig.active || timeLeft.expired) return null;
   if (!loading && (!saleProducts || saleProducts.length === 0)) return null;
 
   return (
@@ -147,12 +144,13 @@ export default function FestivalSale() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
           <div>
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full">
-              {festivalSale.emoji} {festivalSale.discountLabel}
+              <FestiveIcon icon={saleConfig.emoji} size={14} />
+              <span>{saleConfig.discountLabel}</span>
             </span>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-white mt-3">
-              {festivalSale.name}
+              {saleConfig.name}
             </h2>
-            <p className="text-white/80 text-sm mt-1 max-w-md">{festivalSale.subtitle}</p>
+            <p className="text-white/80 text-sm mt-1 max-w-md">{saleConfig.subtitle}</p>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">

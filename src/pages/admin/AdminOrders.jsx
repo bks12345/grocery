@@ -1,6 +1,7 @@
 import { useEffect, useState, Fragment } from "react";
-import { Loader2, Search, ChevronDown, ChevronUp, Package, MapPin, Trash2, AlertTriangle, X } from "lucide-react";
+import { Loader2, Search, ChevronDown, ChevronUp, Package, MapPin, Trash2, AlertTriangle, X, MailCheck } from "lucide-react";
 import * as orderService from "../../services/orderService";
+import { sendOrderStatusEmail } from "../../services/mailService";
 
 const statusOptions = ["confirmed", "shipped", "delivered", "cancelled"];
 
@@ -16,6 +17,7 @@ export default function AdminOrders() {
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [statusFeedback, setStatusFeedback] = useState(null);
   
   // Custom Modal States
   const [deleteModal, setDeleteModal] = useState(null); // null | 'all' | { type: 'single', orderId: string }
@@ -36,7 +38,15 @@ export default function AdminOrders() {
   const handleStatusChange = async (orderId, status) => {
     setUpdatingId(orderId);
     try {
-      await orderService.updateOrderStatus(orderId, status);
+      const updatedOrder = await orderService.updateOrderStatus(orderId, status);
+      const targetOrder = orders?.find((o) => o.orderId === orderId) || updatedOrder;
+      
+      // Dispatch automated delivery status update email to the customer
+      await sendOrderStatusEmail(targetOrder, status);
+      
+      setStatusFeedback(`Status updated to ${status.toUpperCase()} and notification sent to ${targetOrder.address?.email || "customer"}!`);
+      setTimeout(() => setStatusFeedback(null), 4000);
+
       await load();
     } finally {
       setUpdatingId(null);
@@ -104,6 +114,13 @@ export default function AdminOrders() {
           </button>
         )}
       </div>
+
+      {statusFeedback && (
+        <div className="bg-basil-50 border border-basil-200 text-basil-800 px-4 py-3 rounded-2xl text-sm flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200 shadow-soft">
+          <MailCheck size={18} className="text-basil-600 shrink-0" />
+          <span>{statusFeedback}</span>
+        </div>
+      )}
 
       <div className="card-elevated rounded-3xl overflow-hidden">
         {!orders ? (

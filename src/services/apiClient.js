@@ -9,27 +9,35 @@
 
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
   ? import.meta.env.VITE_API_BASE_URL 
-  : "http://localhost:3001";
+  : (import.meta.env.PROD ? "" : "http://localhost:3001");
 
 async function request(path, options = {}) {
   // Tokens are now stored in HttpOnly cookies, so we don't need to manually read them
+  const url = path.startsWith("http://") || path.startsWith("https://") 
+    ? path 
+    : `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    credentials: "include", // Send cookies with requests
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: "include", // Send cookies with requests
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
 
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.message || `Request failed: ${response.status}`);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.message || `API request failed with HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    if (response.status === 204) return null; // no content
+    return response.json();
+  } catch (err) {
+    console.error(`[apiClient] Network request failed for '${path}':`, err.message);
+    throw err;
   }
-
-  if (response.status === 204) return null; // no content
-  return response.json();
 }
 
 export const apiGet = (path) => request(path);

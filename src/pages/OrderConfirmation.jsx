@@ -42,7 +42,9 @@ export default function OrderConfirmation() {
         </div>
         <div className="flex items-center justify-between py-2 border-t border-basil-50">
           <span className="text-sm text-ink-soft">Total paid</span>
-          <span className="font-display text-lg font-semibold text-ink">${total}</span>
+          <span className="font-display text-lg font-semibold text-ink">
+            ${typeof total === "number" ? total.toFixed(2) : Number(total || 0).toFixed(2)}
+          </span>
         </div>
       </div>
 

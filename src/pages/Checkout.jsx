@@ -83,27 +83,43 @@ export default function Checkout() {
     setError(null);
 
     try {
-      const { orderId, estimatedDelivery } = await orderService.placeOrder(
+      const placedOrder = await orderService.placeOrder(
         {
-          items,
+          items: items.map((i) => ({
+            productId: i.product?.id || i.id,
+            name: i.product?.name || i.name || "Product",
+            price: Number(i.product?.price ?? i.price ?? 0),
+            quantity: Number(i.quantity || 1),
+            image: i.product?.image || i.image || "",
+          })),
           address,
           deliveryMethod,
           paymentMethod,
-          subtotal,
-          deliveryFee,
-          discount,
+          subtotal: Number(subtotal || 0),
+          deliveryFee: Number(deliveryFee || 0),
+          discount: Number(discount || 0),
           couponCode: appliedCode,
-          total,
+          total: Number(total || 0),
+          estimatedDelivery:
+            deliveryMethod === "express"
+              ? "Tomorrow, 4pm – 9pm"
+              : "2-3 business days",
         },
         user?.id || null
       );
 
       orderPlacedRef.current = true;
-      const itemCount = items.length;
+      const itemCount = items.reduce((sum, i) => sum + (Number(i.quantity) || 1), 0);
       clearCart();
       navigate("/order-confirmation", {
         replace: true,
-        state: { orderId, estimatedDelivery, total, itemCount, paymentMethod },
+        state: {
+          orderId: placedOrder.orderId,
+          estimatedDelivery: placedOrder.estimatedDelivery,
+          total: placedOrder.total,
+          itemCount,
+          paymentMethod,
+        },
       });
     } catch (err) {
       setError(err.message || "Something went wrong placing your order.");

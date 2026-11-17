@@ -1,26 +1,28 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LocateFixed, CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { apiGet } from "../../services/apiClient";
+import { findZoneByPostcode } from "../../services/deliveryService";
 
 export default function PostcodeCheck({ className = "" }) {
   const [postcode, setPostcode] = useState("");
   const [checking, setChecking] = useState(false);
-  const [result, setResult] = useState(null); // { zone } | { zone: null } | { locateUnavailable: true } | null
+  const [result, setResult] = useState(null);
 
   const handleCheck = async (e) => {
     e.preventDefault();
-    if (!postcode.trim()) return;
+    const clean = postcode.trim();
+    if (!clean) return;
     setChecking(true);
     setResult(null);
+
     try {
-      const res = await apiGet(`/api/delivery/zone/${postcode}`);
-      setResult({ zone: res?.zone || null });
+      const zone = await findZoneByPostcode(clean);
+      setResult({ zone: zone || null });
     } catch (err) {
-      console.error('Postcode check failed:', err);
       setResult({ zone: null });
+    } finally {
+      setChecking(false);
     }
-    setChecking(false);
   };
 
   const handleLocate = () => {
@@ -28,7 +30,6 @@ export default function PostcodeCheck({ className = "" }) {
     setChecking(true);
     navigator.geolocation.getCurrentPosition(
       () => {
-        // No geocoding service configured — let the shopper know instead of failing silently.
         setChecking(false);
         setResult({ zone: null, locateUnavailable: true });
       },
@@ -51,7 +52,7 @@ export default function PostcodeCheck({ className = "" }) {
               setPostcode(e.target.value);
               setResult(null);
             }}
-            placeholder="Enter your postal code"
+            placeholder="Enter your postal code (e.g. 2000, 2170, 3000)"
             aria-label="Postal code"
             className="flex-1 min-w-0 bg-transparent outline-none text-sm text-ink placeholder:text-ink-soft/60 py-2"
           />

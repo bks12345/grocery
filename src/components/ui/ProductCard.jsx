@@ -1,23 +1,15 @@
-import { Heart, Plus, Star, Check } from "lucide-react";
+import { Heart, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import PriceTag from "./PriceTag";
 import SafeImage from "./SafeImage";
-import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { getProductImage, getProductImageFallback } from "../../data/images";
+import { getDiscountPercent } from "../../utils/discount";
 
 export default function ProductCard({ product }) {
-  const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const saved = isInWishlist(product.id);
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = () => {
-    addItem(product, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-  };
+  const discountPercent = getDiscountPercent(product);
 
   return (
     <div className="card-elevated group relative flex flex-col h-full rounded-3xl overflow-hidden">
@@ -28,6 +20,11 @@ export default function ProductCard({ product }) {
             Book by Part
           </span>
         )} */}
+        {discountPercent > 0 && !product.isCombo ? (
+          <span className={`text-xs font-bold bg-tomato-500 text-white px-2.5 py-1 rounded-full shadow-soft ${discountPercent >= 50 ? "animate-pulse" : ""}`}>
+            {discountPercent}% OFF
+          </span>
+        ) : null}
         {product.isCombo && (
           <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full shadow-soft">
             Combo Deal
@@ -36,11 +33,6 @@ export default function ProductCard({ product }) {
         {product.isBulk && (
           <span className="text-xs font-semibold bg-mango-400 text-basil-900 px-2.5 py-1 rounded-full shadow-soft">
             Bulk Pack
-          </span>
-        )}
-        {product.oldPrice && (
-          <span className="text-xs font-semibold bg-tomato-500 text-white px-2.5 py-1 rounded-full shadow-soft">
-            Sale
           </span>
         )}
         {product.isNew && (
@@ -111,27 +103,17 @@ export default function ProductCard({ product }) {
                 <span className="text-[10px] text-ink-soft/60 uppercase tracking-wide">From</span>
                 <PriceTag price={Math.min(...product.parts.map((p) => p.price))} size="sm" />
               </div>
-              {/* <Link
-                to={`/product/${product.id}`}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-basil-600 text-white hover:bg-basil-700 hover:shadow-glow transition-all"
-              >
-                Book Now
-              </Link> */}
             </>
           ) : (
             <>
               <PriceTag price={product.price} oldPrice={product.oldPrice} size="sm" />
-              <button
-                onClick={handleAdd}
-                aria-label={`Add ${product.name} to cart`}
-                className={`w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-                  added
-                    ? "bg-basil-700 scale-105"
-                    : "bg-basil-600 hover:bg-basil-700 hover:shadow-glow hover:-translate-y-0.5"
-                } text-white`}
+              <Link
+                to={`/product/${product.id}`}
+                aria-label={`View ${product.name}`}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-basil-600 text-white hover:bg-basil-700 hover:shadow-glow hover:-translate-y-0.5 transition-all group-hover:scale-105"
               >
-                {added ? <Check size={16} /> : <Plus size={18} />}
-              </button>
+                <ArrowRight size={16} />
+              </Link>
             </>
           )}
         </div>

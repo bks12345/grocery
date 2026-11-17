@@ -10,6 +10,7 @@ import NavDropdown from "./NavDropdown";
 import MegaMenu from "./MegaMenu";
 import OffersDropdown from "./OffersDropdown";
 import CustomizeGroceryModal from "../ui/CustomizeGroceryModal";
+import { useStoreFeatures } from "../../hooks/useStoreFeatures";
 
 const simpleLinks = [{ to: "/about", label: "About Us" }];
 
@@ -124,6 +125,7 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
+  const { goatBookingActive, customizeGroceryActive } = useStoreFeatures();
   const navigate = useNavigate();
   const location = useLocation();
   const offersActive = offersMenu.some((item) =>
@@ -176,26 +178,30 @@ export default function Navbar() {
             ))}
             */}
 
-            <button
-              type="button"
-              onClick={() => setCustomizeGroceryOpen(true)}
-              className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-basil-600 to-basil-700 text-white text-sm font-semibold shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200"
-            >
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/15 group-hover:bg-white/25 transition-colors">
-                <Salad size={14} aria-hidden="true" />
-              </span>
-              Customize Grocery
-            </button>
+            {customizeGroceryActive && (
+              <button
+                type="button"
+                onClick={() => setCustomizeGroceryOpen(true)}
+                className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-basil-600 to-basil-700 text-white text-sm font-semibold shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200"
+              >
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/15 group-hover:bg-white/25 transition-colors">
+                  <Salad size={14} aria-hidden="true" />
+                </span>
+                Customize Grocery
+              </button>
+            )}
 
-            <NavLink
-              to="/book-goat"
-              className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 text-white active:scale-95 transition-all duration-200"
-            >
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/30 group-hover:bg-white/45 transition-colors">
-                <Beef size={14} aria-hidden="true" />
-              </span>
-              Book a Goat
-            </NavLink>
+            {goatBookingActive && (
+              <NavLink
+                to="/book-goat"
+                className="group flex items-center gap-2 pl-3 pr-4 py-2 rounded-full bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 text-white active:scale-95 transition-all duration-200"
+              >
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/30 group-hover:bg-white/45 transition-colors">
+                  <Beef size={14} aria-hidden="true" />
+                </span>
+                Book a Goat
+              </NavLink>
+            )}
           </nav>
 
           {/* Search - desktop */}
@@ -345,30 +351,34 @@ export default function Navbar() {
               </div>
             </MobileAccordion>
 
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                setCustomizeGroceryOpen(true);
-              }}
-              className="flex items-center gap-2.5 mx-1 mt-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-basil-600 to-basil-700 text-white text-sm font-semibold shadow-soft active:scale-[0.98] transition-transform text-left"
-            >
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/15 shrink-0">
-                <Salad size={15} aria-hidden="true" />
-              </span>
-              Customize Grocery
-            </button>
+            {customizeGroceryActive && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setCustomizeGroceryOpen(true);
+                }}
+                className="flex items-center gap-2.5 mx-1 mt-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-basil-600 to-basil-700 text-white text-sm font-semibold shadow-soft active:scale-[0.98] transition-transform text-left"
+              >
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/15 shrink-0">
+                  <Salad size={15} aria-hidden="true" />
+                </span>
+                Customize Grocery
+              </button>
+            )}
 
-            <NavLink
-              to="/book-goat"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2.5 mx-1 mt-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold shadow-soft active:scale-[0.98] transition-transform"
-            >
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/30 shrink-0">
-                <Beef size={15} aria-hidden="true" />
-              </span>
-              Book a Goat
-            </NavLink>
+            {goatBookingActive && (
+              <NavLink
+                to="/book-goat"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 mx-1 mt-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-mango-500 to-mango-600 text-basil-900 text-sm font-semibold shadow-soft active:scale-[0.98] transition-transform"
+              >
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/30 shrink-0">
+                  <Beef size={15} aria-hidden="true" />
+                </span>
+                Book a Goat
+              </NavLink>
+            )}
 
             {/* About (temporarily hidden, kept for future use)
             {simpleLinks.map((link) => (

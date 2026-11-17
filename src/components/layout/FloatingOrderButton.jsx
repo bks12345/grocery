@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
+import { useStoreFeatures } from "../../hooks/useStoreFeatures";
 
 export default function FloatingOrderButton() {
   const { pathname } = useLocation();
+  const { nepalOrderActive } = useStoreFeatures();
 
-  // Keep it off the admin panel and off its own destination page.
-  if (pathname.startsWith("/admin") || pathname === "/order-from-nepal") {
+  // Keep it off the admin panel, off its own destination page, and hidden if deactivated.
+  if (!nepalOrderActive || pathname.startsWith("/admin") || pathname === "/order-from-nepal") {
     return null;
   }
 

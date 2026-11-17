@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "emailConfig",
+    "updatedAt": "2026-08-18T04:56:54.236Z",
+    "senderEmail": "infodashverse@gmail.com",
+    "emailjsTemplateId": "template_kigzouq",
+    "emailjsPublicKey": "RHwaSO7TTlh3SxNd-",
+    "emailjsServiceId": "service_4wk4wic",
+    "senderName": "Daalbhat Store",
+    "replyTo": "support@daalbhat.com"
+  },
+  {
+    "_id": "festivalSale",
+    "subtitle": "Stock up on festival favorites before the celebration ends.",
+    "endDate": "2026-09-08T19:00:00.000Z",
+    "name": "Dashain Festival Sale",
+    "discountLabel": "Up to 30% OFF",
+    "updatedAt": "2026-09-07T08:51:11.085Z",
+    "emoji": "party",
+    "active": true
+  },
+  {
+    "_id": "storeFeatures",
+    "goatBookingActive": true,
+    "updatedAt": "2026-10-07T11:10:36.331Z",
+    "nepalOrderActive": true,
+    "customizeGroceryActive": true
+  }
+]

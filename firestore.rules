@@ -1,0 +1,385 @@
+rules_version = '2';
+
+// ===============================================================
+// Production Data Security Model for Daalbhat Grocery Platform
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - id: string (required, immutable, matches UID)
+//   - name: string (required, 1-100 chars)
+//   - email: string (required, 4-150 chars)
+//   - phone: string (optional, max 30 chars)
+//   - role: string (required: 'customer' or 'admin', non-escalatable by owner)
+//   - blocked: bool (required, immutable by owner, only admin can toggle)
+//   - createdAt: string/timestamp (optional)
+//   - addresses: list (optional, max 20 entries)
+//
+// Collection: orders
+// Document ID: {orderId}
+// Fields:
+//   - orderId: string (required, 1-64 chars)
+//   - userId: string or null (bound to auth.uid when authenticated)
+//   - items: list (required, 1-100 items)
+//   - status: string (required: 'pending' or 'confirmed' on create)
+//   - total: number (required, $0 to $100,000)
+//   - subtotal: number (required, $0 to $100,000)
+//   - deliveryMethod: string ('standard', 'express', 'pickup')
+//   - paymentMethod: string ('cod', 'card', 'bank_transfer', 'stripe')
+//
+// Collection: contactMessages
+// Document ID: {msgId}
+// Fields:
+//   - name: string (required, 1-120 chars)
+//   - email: string (required, 4-150 chars)
+//   - message: string (required, 1-5000 chars)
+//   - phone: string (optional, max 30 chars)
+//
+// Collection: nepalOrders
+// Document ID: {orderId}
+// Fields:
+//   - customer: map with fullName (1-120 chars) & phone (1-30 chars)
+//   - address: map
+//   - products: list (1-50 items)
+//   - status: string (strictly 'pending' on create)
+//
+// Collection: mail
+// Document ID: {mailId}
+// Fields:
+//   - to: string or list (required)
+//   - message: map with subject (max 300 chars)
+//
+// Admin Catalogs (Public Read, Admin Write with Type Enforcement):
+//   - products, categories, coupons, goatParts, customizedGrocery,
+//     deliveryZones, emailTemplates, settings, content
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------
+    // Core Authentication & Role Verification Helpers
+    // -------------------------------------------------------------
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Authorized bootstrap administrators for environment provisioning
+    function isBootstrapAdmin() {
+      return isAuthenticated() &&
+        request.auth.token.email in ['admin@daalbhat.com', 'owner@daalbhat.com'];
+    }
+
+    // Admin role check: verifies role is 'admin' AND user is not blocked (or bootstrap admin)
+    function isAdmin() {
+      return isAuthenticated() && (
+        isBootstrapAdmin() ||
+        request.auth.token.role == 'admin' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == false)
+      );
+    }
+
+    // -------------------------------------------------------------
+    // Validation Helpers
+    // -------------------------------------------------------------
+
+    // Validates customer registration: strictly blocks self-promotion to admin
+    function isValidUserCreate(userId) {
+      return isOwner(userId) &&
+        request.resource.data.id == userId &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 100 &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 3 &&
+        request.resource.data.email.size() <= 150 &&
+        (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)) &&
+        (!('role' in request.resource.data) || request.resource.data.role == 'customer' || (isBootstrapAdmin() && request.resource.data.role == 'admin')) &&
+        (!('blocked' in request.resource.data) || request.resource.data.blocked == false) &&
+        (!('addresses' in request.resource.data) || (request.resource.data.addresses is list && request.resource.data.addresses.size() <= 20)) &&
+        request.resource.data.keys().hasOnly(['id', 'name', 'email', 'phone', 'role', 'blocked', 'createdAt', 'addresses']);
+    }
+
+    // Validates customer profile updates: prohibits changing role, blocked status, ID, or email, and prevents blocked accounts from updating
+    function isValidUserUpdate(userId) {
+      return isOwner(userId) &&
+        resource.data.get('blocked', false) == false &&
+        request.resource.data.id == resource.data.id &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'blocked', 'id', 'email']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 100 &&
+        request.resource.data.email is string &&
+        request.resource.data.email == resource.data.email &&
+        (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)) &&
+        (!('addresses' in request.resource.data) || (request.resource.data.addresses is list && request.resource.data.addresses.size() <= 20)) &&
+        request.resource.data.keys().hasOnly(['id', 'name', 'email', 'phone', 'role', 'blocked', 'createdAt', 'addresses']);
+    }
+
+    // Validates customer order submission with mathematical integrity checks and blocked user rejection
+    function isValidOrderCreate() {
+      return request.resource.data.orderId is string &&
+        request.resource.data.orderId.size() > 0 &&
+        request.resource.data.orderId.size() <= 64 &&
+        request.resource.data.status in ['confirmed', 'pending'] &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() > 0 &&
+        request.resource.data.items.size() <= 100 &&
+        request.resource.data.total is number &&
+        request.resource.data.total >= 0 &&
+        request.resource.data.total <= 100000 &&
+        (!('subtotal' in request.resource.data) || (request.resource.data.subtotal is number && request.resource.data.subtotal >= 0 && request.resource.data.subtotal <= 100000)) &&
+        (!('deliveryFee' in request.resource.data) || (request.resource.data.deliveryFee is number && request.resource.data.deliveryFee >= 0 && request.resource.data.deliveryFee <= 500)) &&
+        (!('discount' in request.resource.data) || (request.resource.data.discount is number && request.resource.data.discount >= 0 && request.resource.data.discount <= 100000)) &&
+        (!('deliveryMethod' in request.resource.data) || request.resource.data.deliveryMethod in ['standard', 'express', 'pickup']) &&
+        (!('paymentMethod' in request.resource.data) || request.resource.data.paymentMethod in ['cod', 'card', 'bank_transfer', 'stripe']) &&
+        (
+          (isAuthenticated() &&
+           request.resource.data.userId == request.auth.uid &&
+           (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == false)) ||
+          (!isAuthenticated() && (!('userId' in request.resource.data) || request.resource.data.userId == null))
+        ) &&
+        (
+          !('subtotal' in request.resource.data) ||
+          !('deliveryFee' in request.resource.data) ||
+          !('discount' in request.resource.data) ||
+          (
+            (request.resource.data.subtotal - request.resource.data.discount + request.resource.data.deliveryFee <= 0 && request.resource.data.total == 0) ||
+            request.resource.data.total == (request.resource.data.subtotal - request.resource.data.discount + request.resource.data.deliveryFee)
+          )
+        ) &&
+        request.resource.data.keys().hasOnly([
+          'orderId', 'userId', 'placedAt', 'status', 'estimatedDelivery',
+          'items', 'address', 'deliveryMethod', 'paymentMethod',
+          'subtotal', 'deliveryFee', 'discount', 'couponCode', 'total', 'notes'
+        ]);
+    }
+
+    // Validates contact inquiries against payload injection, resource exhaustion, and suspended users
+    function isValidContactMessage() {
+      return (!isAuthenticated() ||
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == false) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 120 &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 3 &&
+        request.resource.data.email.size() <= 150 &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 5000 &&
+        (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)) &&
+        (!('subject' in request.resource.data) || (request.resource.data.subject is string && request.resource.data.subject.size() <= 200)) &&
+        request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'subject', 'message', 'createdAt', 'status']);
+    }
+
+    // Validates Nepal custom orders and rejects suspended accounts
+    function isValidNepalOrderCreate() {
+      return (!isAuthenticated() ||
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == false) &&
+        (
+        // Format matching nepalOrderService.js
+        (
+          request.resource.data.orderId is string &&
+          request.resource.data.orderId.size() > 0 &&
+          request.resource.data.orderId.size() <= 64 &&
+          request.resource.data.senderName is string &&
+          request.resource.data.senderName.size() > 0 &&
+          request.resource.data.senderName.size() <= 120 &&
+          request.resource.data.recipientName is string &&
+          request.resource.data.recipientName.size() > 0 &&
+          request.resource.data.recipientName.size() <= 120 &&
+          request.resource.data.recipientPhone is string &&
+          request.resource.data.recipientPhone.size() > 0 &&
+          request.resource.data.recipientPhone.size() <= 30 &&
+          request.resource.data.items is list &&
+          request.resource.data.items.size() > 0 &&
+          request.resource.data.items.size() <= 50 &&
+          request.resource.data.status == 'pending' &&
+          (!('senderPhone' in request.resource.data) || (request.resource.data.senderPhone is string && request.resource.data.senderPhone.size() <= 30)) &&
+          (!('senderEmail' in request.resource.data) || (request.resource.data.senderEmail is string && request.resource.data.senderEmail.size() <= 150)) &&
+          (!('recipientAddress' in request.resource.data) || (request.resource.data.recipientAddress is string && request.resource.data.recipientAddress.size() <= 300)) &&
+          (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 2000)) &&
+          request.resource.data.keys().hasOnly(['orderId', 'senderName', 'senderEmail', 'senderPhone', 'recipientName', 'recipientPhone', 'recipientAddress', 'items', 'notes', 'status', 'createdAt'])
+        ) ||
+        // Legacy format fallback
+        (
+          request.resource.data.customer is map &&
+          request.resource.data.customer.fullName is string &&
+          request.resource.data.customer.fullName.size() > 0 &&
+          request.resource.data.customer.fullName.size() <= 120 &&
+          request.resource.data.customer.phone is string &&
+          request.resource.data.customer.phone.size() > 0 &&
+          request.resource.data.customer.phone.size() <= 30 &&
+          request.resource.data.products is list &&
+          request.resource.data.products.size() > 0 &&
+          request.resource.data.products.size() <= 50 &&
+          request.resource.data.status == 'pending' &&
+          (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 2000)) &&
+          request.resource.data.keys().hasOnly(['customer', 'address', 'products', 'notes', 'status', 'createdAt', 'confirmed'])
+        )
+      );
+    }
+
+    // Validates outbound mail queue requests and ensures sender is not suspended
+    function isValidMailCreate() {
+      return isAuthenticated() &&
+        (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false) == false) &&
+        request.resource.data.to != null &&
+        request.resource.data.message is map &&
+        request.resource.data.message.subject is string &&
+        request.resource.data.message.subject.size() <= 300 &&
+        (!('from' in request.resource.data) || (request.resource.data.from is string && request.resource.data.from.size() <= 200)) &&
+        request.resource.data.keys().hasOnly(['to', 'from', 'message', 'orderParams', 'template', 'createdAt', 'status']);
+    }
+
+    // Validates product catalog items on creation or modification
+    function isValidProduct() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 200 &&
+        request.resource.data.price is number &&
+        request.resource.data.price >= 0;
+    }
+
+    // Validates category items
+    function isValidCategory() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 100;
+    }
+
+    // Validates coupon promotions (supports percent and flat discounts)
+    function isValidCoupon() {
+      return request.resource.data.code is string &&
+        request.resource.data.code.size() > 0 &&
+        request.resource.data.code.size() <= 32 &&
+        (
+          (request.resource.data.type in ['percent', 'flat'] &&
+           request.resource.data.value is number &&
+           request.resource.data.value >= 0) ||
+          (request.resource.data.discountPercent is number &&
+           request.resource.data.discountPercent >= 0 &&
+           request.resource.data.discountPercent <= 100)
+        );
+    }
+
+    // Validates goat parts stock
+    function isValidGoatPart() {
+      return request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.pricePerKg is number &&
+        request.resource.data.pricePerKg >= 0;
+    }
+
+    // -------------------------------------------------------------
+    // Collection Security Rules
+    // -------------------------------------------------------------
+
+    // Users Collection: Strict identity binding, zero privilege escalation
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || isValidUserCreate(userId);
+      allow update: if isAdmin() || isValidUserUpdate(userId);
+      allow delete: if isAdmin();
+    }
+
+    // Orders Collection: Read own, validated placement, admin management
+    match /orders/{orderId} {
+      allow read: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isValidOrderCreate();
+      allow update, delete: if isAdmin();
+    }
+
+    // Contact Messages: Validated creation, admin management
+    match /contactMessages/{msgId} {
+      allow create: if isValidContactMessage();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Nepal Custom Orders: Validated creation with pending status, admin management
+    match /nepalOrders/{orderId} {
+      allow create: if isValidNepalOrderCreate();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Outbound Mail Queue: Strict schema validation, authenticated creation, admin management
+    match /mail/{mailId} {
+      allow create: if isValidMailCreate();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Products Catalog: Public read, validated admin mutation, admin delete
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidProduct();
+      allow delete: if isAdmin();
+    }
+
+    // Categories Taxonomy: Public read, validated admin mutation, admin delete
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidCategory();
+      allow delete: if isAdmin();
+    }
+
+    // Coupons: Public read, validated admin mutation, admin delete
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidCoupon();
+      allow delete: if isAdmin();
+    }
+
+    // Goat Stock Cuts: Public read, validated admin mutation, admin delete
+    match /goatParts/{partId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidGoatPart();
+      allow delete: if isAdmin();
+    }
+
+    // Customized Grocery Staples: Public read, admin write
+    match /customizedGrocery/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Delivery Zones & Postcodes: Public read, admin write
+    match /deliveryZones/{zoneId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Email Templates: Admin only access
+    match /emailTemplates/{templateId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Store & Feature Settings: Public read for storefront flags only, admin write & admin read for sensitive configs
+    match /settings/{settingId} {
+      allow read: if settingId in ['storeFeatures', 'festivalSale'] || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // CMS & Policy Pages: Public read, admin write
+    match /content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default Deny: Absolute lockdown on any undeclared collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

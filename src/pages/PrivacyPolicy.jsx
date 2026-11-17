@@ -1,56 +1,47 @@
+import { useState, useEffect } from "react";
 import LegalPage, { LegalSection } from "../components/layout/LegalPage";
+import { getContent, DEFAULT_CONTENT } from "../services/contentService";
 
 export default function PrivacyPolicy() {
+  const [content, setContent] = useState(DEFAULT_CONTENT["privacy-policy"]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getContent("privacy-policy").then((res) => {
+      if (!cancelled && res) {
+        setContent((prev) => ({ ...prev, ...res }));
+      }
+    });
+
+    const handleContentUpdate = (e) => {
+      if (e.detail?.key === "privacy-policy" && e.detail.data) {
+        setContent((prev) => ({ ...prev, ...e.detail.data }));
+      }
+    };
+
+    window.addEventListener("daalbhat:content-updated", handleContentUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("daalbhat:content-updated", handleContentUpdate);
+    };
+  }, []);
+
+  const sections = content.sections || DEFAULT_CONTENT["privacy-policy"].sections;
+
   return (
-    <LegalPage title="Privacy Policy" updated="July 2026">
-      <p className="text-sm text-ink-soft leading-relaxed">
-        This is placeholder policy content for demonstration purposes — replace it with
-        text reviewed by a qualified professional before taking this site live.
-      </p>
-
-      <LegalSection heading="Information we collect">
-        <p>
-          When you create an account, place an order, or contact support, we collect
-          information such as your name, email address, phone number, delivery address,
-          and order history. We use this information solely to operate the store —
-          processing orders, providing support, and improving the shopping experience.
+    <LegalPage title={content.title || "Privacy Policy"} updated={content.updated || "July 2026"}>
+      {content.disclaimer && (
+        <p className="text-sm text-ink-soft leading-relaxed">
+          {content.disclaimer}
         </p>
-      </LegalSection>
+      )}
 
-      <LegalSection heading="How we use your information">
-        <p>
-          Your information is used to fulfill orders, communicate order updates, respond
-          to support requests, and — with your consent — send occasional offers and
-          newsletters. We do not sell your personal information to third parties.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Data storage and security">
-        <p>
-          We take reasonable technical and organizational measures to protect your data
-          from unauthorized access, loss, or misuse. No online service can guarantee
-          absolute security, so we encourage using a strong, unique password for your
-          account.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Your rights">
-        <p>
-          You can review and update your account details at any time from My Account, and
-          you may request deletion of your account and associated data by contacting
-          support.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Contact us">
-        <p>
-          Questions about this policy can be sent to{" "}
-          <a href="mailto:support@daalbhat.com" className="text-basil-600 hover:text-basil-700">
-            support@daalbhat.com
-          </a>
-          .
-        </p>
-      </LegalSection>
+      {sections.map((sec, idx) => (
+        <LegalSection key={sec.heading || idx} heading={sec.heading}>
+          <p className="whitespace-pre-line">{sec.content}</p>
+        </LegalSection>
+      ))}
     </LegalPage>
   );
 }
+

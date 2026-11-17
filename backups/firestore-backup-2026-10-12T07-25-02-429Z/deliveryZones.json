@@ -1,0 +1,104 @@
+[
+  {
+    "_id": "adelaide",
+    "freeAbove": "$75",
+    "postcodes": [
+      "2747",
+      "2751",
+      "2749"
+    ],
+    "time": "12pm – 6pm",
+    "days": "Saturdays",
+    "name": "Adelaide",
+    "belowRange": "$0 – $74.99",
+    "id": "adelaide",
+    "reducedCharge": "$1",
+    "updatedAt": "2026-09-07T08:53:04.487Z",
+    "standardCharge": "$5.99"
+  },
+  {
+    "_id": "brisbane",
+    "reducedCharge": "$1",
+    "highlight": false,
+    "postcodes": [
+      "2563"
+    ],
+    "belowRange": "$0 – $49.99",
+    "freeAbove": "$50",
+    "standardCharge": "$5.99",
+    "id": "brisbane",
+    "updatedAt": "2026-09-07T08:48:44.879Z",
+    "time": "4pm – 9pm",
+    "days": "Sunday to Friday",
+    "name": "Brisbane"
+  },
+  {
+    "_id": "canberra",
+    "postcodes": [
+      "2765",
+      "2762",
+      "2769",
+      "2155",
+      "2763",
+      "2768",
+      "2148"
+    ],
+    "standardCharge": "$5.99",
+    "freeAbove": "$75",
+    "time": "12pm – 6pm",
+    "days": "Saturdays",
+    "name": "Canberra",
+    "id": "canberra",
+    "belowRange": "$0 – $74.99",
+    "updatedAt": "2026-09-07T08:48:44.879Z",
+    "reducedCharge": "$1"
+  },
+  {
+    "_id": "melbourne",
+    "highlight": false,
+    "standardCharge": "$4.99",
+    "postcodes": [
+      "2567",
+      "2570",
+      "2557",
+      "2556",
+      "2565",
+      "2167",
+      "2611",
+      "2617",
+      "2564",
+      "2560",
+      "2566",
+      "2179",
+      "2558",
+      "2559"
+    ],
+    "freeAbove": "$40",
+    "time": "4pm – 9pm",
+    "days": "Sunday to Friday",
+    "name": "Melbourne",
+    "id": "melbourne",
+    "belowRange": "$0 – $39.99",
+    "updatedAt": "2026-09-07T08:48:44.879Z",
+    "reducedCharge": "$1"
+  },
+  {
+    "_id": "sydney",
+    "name": "\tSydney",
+    "standardCharge": "$4.99",
+    "days": "Sunday to Friday",
+    "time": "4pm – 9pm",
+    "updatedAt": "2026-09-07T08:48:44.879Z",
+    "id": "sydney",
+    "freeAbove": "$50",
+    "postcodes": [
+      "2173",
+      "2170",
+      "2174",
+      "2171"
+    ],
+    "reducedCharge": "$1",
+    "belowRange": "$0 – $49.99",
+    "highlight": false
+  }
+]

@@ -7,7 +7,12 @@ import {
   LogOut,
   Loader2,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  ShieldCheck,
 } from "lucide-react";
+import { auth } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import * as authService from "../services/authService";
 import * as orderService from "../services/orderService";
@@ -110,7 +115,7 @@ function ProfileTab() {
     setSaving(true);
     setError(null);
     try {
-      await updateProfile(form);
+      await updateProfile({ name: form.name.trim(), phone: form.phone.trim() });
       setSaved(true);
     } catch (err) {
       setError(err.message || "Couldn't save changes.");
@@ -126,8 +131,14 @@ function ProfileTab() {
       </h2>
       <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4 max-w-xl">
         <Field label="Full name" value={form.name} onChange={handleChange("name")} required />
-        <Field label="Email" type="email" value={form.email} onChange={handleChange("email")} required />
-        <Field label="Phone number" type="tel" value={form.phone} onChange={handleChange("phone")} required />
+        <Field
+          label="Email (Primary Login - Unchangeable)"
+          type="email"
+          value={form.email}
+          disabled
+          readOnly
+        />
+        <Field label="Phone number" type="tel" value={form.phone} onChange={handleChange("phone")} />
 
         <div className="sm:col-span-2 flex items-center gap-3 mt-1">
           <button
@@ -150,9 +161,17 @@ function ProfileTab() {
   );
 }
 
+const orderStatusStyles = {
+  confirmed: "bg-basil-50 text-basil-700 border-basil-200",
+  shipped: "bg-mango-100 text-mango-700 border-mango-300",
+  delivered: "bg-basil-600 text-white border-basil-600",
+  cancelled: "bg-tomato-100 text-tomato-600 border-tomato-200",
+};
+
 function OrdersTab({ userId }) {
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedOrders, setExpandedOrders] = useState({});
 
   useEffect(() => {
     let cancelled = false;
@@ -167,6 +186,13 @@ function OrdersTab({ userId }) {
     };
   }, [userId]);
 
+  const toggleExpand = (orderId) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
+
   if (loading) {
     return (
       <div className="card-elevated rounded-3xl p-10 flex justify-center">
@@ -175,68 +201,207 @@ function OrdersTab({ userId }) {
     );
   }
 
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     return (
       <div className="card-elevated rounded-3xl p-10 text-center">
         <div className="w-14 h-14 mx-auto rounded-full bg-basil-50 flex items-center justify-center">
           <Package size={24} className="text-basil-600" aria-hidden="true" />
         </div>
-        <p className="text-ink-soft mt-3">You haven't placed any orders yet.</p>
+        <p className="text-ink-soft mt-3 font-medium">You haven't placed any orders yet.</p>
+        <p className="text-xs text-ink-soft/70 mt-1">
+          When you place an order, its details and delivery tracking will appear here.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {orders.map((order) => (
-        <div key={order.orderId} className="card-elevated rounded-3xl p-5">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <p className="font-medium text-ink">Order #{order.orderId}</p>
-              <p className="text-xs text-ink-soft/70 mt-0.5">
-                {new Date(order.placedAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-            <span className="text-xs font-semibold bg-basil-50 text-basil-700 px-3 py-1 rounded-full capitalize">
-              {order.status}
-            </span>
-          </div>
+    <div className="flex flex-col gap-5">
+      {orders.map((order) => {
+        const isExpanded = expandedOrders[order.orderId] !== false; // Default expanded so items are always visible!
+        const items = order.items || [];
+        const status = (order.status || "confirmed").toLowerCase();
 
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            {order.items.slice(0, 5).map((item) => (
-              <span
-                key={item.productId}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-basil-50 text-xs font-semibold text-basil-700"
-                title={item.name}
-              >
-                {item.name?.charAt(0).toUpperCase() || "?"}
-              </span>
-            ))}
-            {order.items.length > 5 && (
-              <span className="text-xs text-ink-soft/60">+{order.items.length - 5} more</span>
+        return (
+          <div
+            key={order.orderId}
+            className="card-elevated rounded-3xl p-6 bg-white border border-basil-50 transition-all shadow-soft"
+          >
+            {/* Header: Order ID, Date & Status */}
+            <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-basil-50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-semibold text-base text-ink">
+                    Order #{order.orderId}
+                  </span>
+                  <span
+                    className={`text-xs font-semibold px-3 py-0.5 rounded-full border capitalize ${
+                      orderStatusStyles[status] || "bg-basil-50 text-basil-700 border-basil-200"
+                    }`}
+                  >
+                    {status}
+                  </span>
+                </div>
+                <p className="text-xs text-ink-soft/70 mt-1">
+                  Placed on{" "}
+                  {new Date(order.placedAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-xs text-ink-soft block">Total</span>
+                  <span className="font-display text-lg font-bold text-ink">
+                    $
+                    {typeof order.total === "number"
+                      ? order.total.toFixed(2)
+                      : Number(order.total || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(order.orderId)}
+                  className="p-1.5 rounded-full text-ink-soft hover:bg-basil-50 transition-colors"
+                  aria-label="Toggle order details"
+                >
+                  {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Items List */}
+            {isExpanded && (
+              <div className="mt-4 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                  Items in this order ({items.length})
+                </p>
+
+                <div className="divide-y divide-basil-50/70">
+                  {items.map((item, idx) => {
+                    const price = Number(item.price ?? 0);
+                    const qty = Number(item.quantity ?? 1);
+                    const itemTotal = (price * qty).toFixed(2);
+
+                    return (
+                      <div
+                        key={item.productId || idx}
+                        className="py-3 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-xl object-cover border border-basil-100/60 shrink-0 bg-cream"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-basil-50 text-basil-700 font-bold flex items-center justify-center shrink-0 border border-basil-100 text-sm">
+                              {(item.name || "P").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-ink truncate">
+                              {item.name || "Item"}
+                            </p>
+                            <p className="text-xs text-ink-soft mt-0.5">
+                              ${price.toFixed(2)} × {qty}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-sm font-bold text-ink">${itemTotal}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Order Summary & Delivery Address Footer */}
+                <div className="mt-4 pt-4 border-t border-basil-50 grid sm:grid-cols-2 gap-4 text-xs text-ink-soft bg-basil-50/20 p-4 rounded-2xl">
+                  <div>
+                    <span className="font-semibold text-ink flex items-center gap-1 mb-1">
+                      <MapPin size={13} className="text-basil-600" /> Delivery Address
+                    </span>
+                    <p className="text-ink">
+                      {order.address?.fullName || "Valued Customer"}
+                    </p>
+                    <p>{order.address?.addressLine || ""}</p>
+                    <p>
+                      {order.address?.city || ""}{" "}
+                      {order.address?.pincode ? `, ${order.address.pincode}` : ""}
+                    </p>
+                  </div>
+
+                  <div className="sm:text-right space-y-1">
+                    <p className="flex justify-between sm:justify-end gap-3">
+                      <span>Subtotal:</span>
+                      <span className="font-medium text-ink">
+                        ${Number(order.subtotal || order.total || 0).toFixed(2)}
+                      </span>
+                    </p>
+                    {Number(order.deliveryFee || 0) > 0 && (
+                      <p className="flex justify-between sm:justify-end gap-3">
+                        <span>Delivery:</span>
+                        <span className="font-medium text-ink">
+                          +${Number(order.deliveryFee).toFixed(2)}
+                        </span>
+                      </p>
+                    )}
+                    {Number(order.discount || 0) > 0 && (
+                      <p className="flex justify-between sm:justify-end gap-3 text-tomato-500 font-medium">
+                        <span>Discount:</span>
+                        <span>-${Number(order.discount).toFixed(2)}</span>
+                      </p>
+                    )}
+                    <p className="flex justify-between sm:justify-end gap-3 pt-1 border-t border-basil-100 font-bold text-ink text-sm">
+                      <span>Total:</span>
+                      <span className="text-basil-700">
+                        ${Number(order.total || 0).toFixed(2)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-basil-50">
-            <span className="text-sm text-ink-soft">
-              {order.items.length} item{order.items.length !== 1 && "s"}
-            </span>
-            <span className="font-display text-lg font-semibold text-ink">${order.total}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 function SecurityTab({ userId }) {
+  const isGoogleUser = auth.currentUser?.providerData?.some(
+    (p) => p.providerId === "google.com"
+  );
+
   const [form, setForm] = useState({ current: "", next: "", confirm: "" });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null); // { type: 'success' | 'error', text }
+
+  if (isGoogleUser) {
+    return (
+      <div className="card-elevated rounded-3xl p-6">
+        <h2 className="font-display text-lg font-semibold text-ink mb-4">Account Security</h2>
+        <div className="flex items-start gap-3 p-5 rounded-2xl bg-basil-50 border border-basil-200 text-sm">
+          <ShieldCheck size={22} className="shrink-0 text-basil-600 mt-0.5" />
+          <div>
+            <p className="font-medium text-ink">Signed in with Google</p>
+            <p className="mt-1 text-ink-soft">
+              Your authentication and password security are managed directly by Google. No separate Daalbhat password is required.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));

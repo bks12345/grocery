@@ -1,0 +1,167 @@
+[
+  {
+    "_id": "cg_onion",
+    "image": "https://images.unsplash.com/photo-1508747703725-719777637510?w=600&auto=format&fit=crop&q=80",
+    "productId": null,
+    "notes": "Aromatic base for curries and gravies",
+    "name": "Red Onions",
+    "isActive": true,
+    "perAdult": 1,
+    "category": "Vegetables",
+    "unit": "kg",
+    "diets": [
+      "all"
+    ],
+    "dietaryTag": "none",
+    "inStock": true,
+    "id": "cg_onion",
+    "price": 60
+  },
+  {
+    "_id": "cg_paneer",
+    "dietaryTag": "none",
+    "price": 420,
+    "diets": [
+      "vegetarian",
+      "eggetarian"
+    ],
+    "name": "Fresh Malai Paneer",
+    "inStock": true,
+    "unit": "kg",
+    "category": "Dairy",
+    "productId": "p010",
+    "isActive": true,
+    "perAdult": 0.4,
+    "image": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&auto=format&fit=crop&q=80",
+    "id": "cg_paneer",
+    "notes": "Vegetarian high-protein staple"
+  },
+  {
+    "_id": "cg_potato",
+    "image": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80",
+    "notes": "Versatile staple vegetable",
+    "inStock": true,
+    "productId": null,
+    "perAdult": 1.5,
+    "diets": [
+      "all"
+    ],
+    "isActive": true,
+    "category": "Vegetables",
+    "name": "Potatoes (Fresh Farm)",
+    "id": "cg_potato",
+    "dietaryTag": "none",
+    "unit": "kg",
+    "price": 50
+  },
+  {
+    "_id": "cg_rice",
+    "unit": "kg",
+    "name": "Rice (Everyday Milled)",
+    "diets": [
+      "all"
+    ],
+    "id": "cg_rice",
+    "price": 90,
+    "category": "Grains & Cereals",
+    "perAdult": 2.5,
+    "notes": "Primary carbohydrate staple",
+    "productId": "p001",
+    "updatedAt": "2026-09-24T11:42:46.356Z",
+    "image": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+    "isActive": false,
+    "dietaryTag": "none",
+    "inStock": true
+  },
+  {
+    "_id": "cg_salt",
+    "category": "Cooking Essentials",
+    "unit": "kg",
+    "perAdult": 0.25,
+    "notes": "Daily seasoning (Reduced on Low Salt preference)",
+    "name": "Himalayan Pink Salt",
+    "productId": "p016",
+    "image": "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=600&auto=format&fit=crop&q=80",
+    "isActive": true,
+    "dietaryTag": "salt",
+    "id": "cg_salt",
+    "diets": [
+      "all"
+    ],
+    "price": 35,
+    "inStock": true
+  },
+  {
+    "_id": "cg_soyachunks",
+    "image": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80",
+    "notes": "Vegan plant protein powerhouse",
+    "category": "Protein",
+    "name": "Soya Chunks / Meal Maker",
+    "dietaryTag": "none",
+    "perAdult": 0.3,
+    "unit": "kg",
+    "isActive": true,
+    "price": 260,
+    "id": "cg_soyachunks",
+    "inStock": true,
+    "diets": [
+      "vegetarian",
+      "vegan"
+    ],
+    "productId": "p012"
+  },
+  {
+    "_id": "cg_sugar",
+    "id": "cg_sugar",
+    "unit": "kg",
+    "notes": "Tea and sweetening",
+    "isActive": true,
+    "image": "https://images.unsplash.com/photo-1581441363689-1f3c3c414635?w=600&auto=format&fit=crop&q=80",
+    "perAdult": 0.5,
+    "name": "Sugar",
+    "category": "Cooking Essentials",
+    "dietaryTag": "none",
+    "price": 80,
+    "inStock": true,
+    "productId": "p015",
+    "diets": [
+      "all"
+    ]
+  },
+  {
+    "_id": "cg_tea",
+    "unit": "g",
+    "inStock": true,
+    "diets": [
+      "all"
+    ],
+    "name": "Ilam Orthodox Black Tea",
+    "id": "cg_tea",
+    "price": 0.5,
+    "notes": "Morning and afternoon chiya",
+    "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80",
+    "productId": "p020",
+    "perAdult": 100,
+    "dietaryTag": "none",
+    "isActive": true,
+    "category": "Beverages"
+  },
+  {
+    "_id": "cg_tofu",
+    "productId": null,
+    "image": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+    "notes": "Dairy-free vegan protein",
+    "diets": [
+      "vegan"
+    ],
+    "category": "Protein",
+    "id": "cg_tofu",
+    "inStock": true,
+    "name": "Silken Organic Tofu",
+    "perAdult": 0.3,
+    "dietaryTag": "none",
+    "unit": "kg",
+    "price": 300,
+    "isActive": true
+  }
+]

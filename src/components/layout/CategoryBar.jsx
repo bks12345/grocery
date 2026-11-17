@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import * as categoryService from "../../services/categoryService";
 import { useAsync } from "../../hooks/useAsync";
+import { useStoreFeatures } from "../../hooks/useStoreFeatures";
 
 export default function CategoryBar() {
   const location = useLocation();
+  const { nepalOrderActive } = useStoreFeatures();
   const params = new URLSearchParams(location.search);
   const activeCategory =
     location.pathname === "/shop" ? params.get("category") : null;
@@ -35,7 +37,7 @@ export default function CategoryBar() {
             })}
           </nav>
 
-          {location.pathname !== "/order-from-nepal" && (
+          {nepalOrderActive && location.pathname !== "/order-from-nepal" && (
             <Link
               to="/order-from-nepal"
               className="shrink-0 flex items-center gap-1.5 bg-white text-basil-700 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full shadow-soft transition-all hover:bg-basil-50 hover:shadow-soft-lg hover:-translate-y-0.5"

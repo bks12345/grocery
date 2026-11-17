@@ -1,0 +1,121 @@
+[
+  {
+    "_id": "cooking-essentials",
+    "image": "",
+    "color": "bg-tomato-100",
+    "name": "Cooking Essentials",
+    "id": "cooking-essentials",
+    "createdAt": "2026-08-18T03:57:39.404Z",
+    "slug": "cooking-essentials",
+    "subcategories": [
+      "Cooking Oil",
+      "Mustard Oil",
+      "Salt",
+      "Sugar",
+      "Tea",
+      "Coffee"
+    ]
+  },
+  {
+    "_id": "dairy",
+    "subcategories": [
+      "Milk",
+      "Curd (Yogurt)",
+      "Butter",
+      "Cheese",
+      "Paneer",
+      "Ghee"
+    ],
+    "image": "",
+    "color": "bg-tomato-100",
+    "name": "Dairy",
+    "id": "dairy",
+    "createdAt": "2026-08-18T03:57:40.558Z",
+    "slug": "dairy"
+  },
+  {
+    "_id": "grains-flour",
+    "slug": "grains-flour",
+    "image": "",
+    "color": "bg-mango-100",
+    "subcategories": [
+      "Rice",
+      "Basmati Rice",
+      "Wheat Flour (Atta)",
+      "Maize Flour",
+      "Millet Flour",
+      "Beaten Rice (Chiura)"
+    ],
+    "name": "Grains & Flour",
+    "id": "grains-flour",
+    "createdAt": "2026-08-18T03:57:39.041Z"
+  },
+  {
+    "_id": "household-cleaning",
+    "name": "Household & Cleaning",
+    "id": "household-cleaning",
+    "createdAt": "2026-08-18T03:57:41.304Z",
+    "color": "bg-mango-100",
+    "image": "",
+    "slug": "household-cleaning",
+    "subcategories": [
+      "Floor Cleaner",
+      "Hand Wash",
+      "Soap",
+      "Shampoo",
+      "Toothpaste",
+      "Tissue Paper"
+    ]
+  },
+  {
+    "_id": "packaged-foods",
+    "id": "packaged-foods",
+    "image": "",
+    "color": "bg-mango-100",
+    "createdAt": "2026-08-18T03:57:40.175Z",
+    "subcategories": [
+      "Noodles",
+      "Pasta",
+      "Biscuits",
+      "Bread",
+      "Oats",
+      "Peanut Butter"
+    ],
+    "name": "Packaged Foods",
+    "slug": "packaged-foods"
+  },
+  {
+    "_id": "pulses-beans",
+    "id": "pulses-beans",
+    "slug": "pulses-beans",
+    "image": "",
+    "color": "bg-basil-100",
+    "createdAt": "2026-08-18T03:57:40.923Z",
+    "subcategories": [
+      "Lentil (Masoor Dal)",
+      "Black Lentil (Maas)",
+      "Chickpeas (Chana)",
+      "Kidney Beans (Rajma)",
+      "Green Gram (Moong)",
+      "Soybeans"
+    ],
+    "name": "Pulses & Beans"
+  },
+  {
+    "_id": "spices",
+    "id": "spices",
+    "subcategories": [
+      "Turmeric Powder",
+      "Cumin Powder",
+      "Coriander Powder",
+      "Chili Powder",
+      "Black Pepper",
+      "Garam Masala"
+    ],
+    "image": "",
+    "color": "bg-basil-100",
+    "slug": "spices",
+    "name": "Spices",
+    "createdAt": "2026-08-18T03:57:39.791Z"
+  }
+]

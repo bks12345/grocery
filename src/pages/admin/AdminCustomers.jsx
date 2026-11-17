@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Loader2, Search, ShieldOff, ShieldCheck, Star, User } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import * as authService from "../../services/authService";
 
 export default function AdminCustomers() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState(null);
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
@@ -14,6 +16,10 @@ export default function AdminCustomers() {
   }, []);
 
   const handleToggleBlock = async (user) => {
+    if (user.id === currentUser?.id) {
+      alert("Security Guard: You cannot suspend your own active administrator account.");
+      return;
+    }
     setUpdatingId(user.id);
     try {
       await authService.setUserBlocked(user.id, !user.blocked);
@@ -24,6 +30,10 @@ export default function AdminCustomers() {
   };
 
   const handleToggleRole = async (user) => {
+    if (user.id === currentUser?.id) {
+      alert("Security Guard: You cannot demote your own active administrator account.");
+      return;
+    }
     setUpdatingId(`role_${user.id}`);
     try {
       const newRole = user.role === "admin" ? "customer" : "admin";
@@ -108,45 +118,51 @@ export default function AdminCustomers() {
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleToggleRole(user)}
-                          disabled={updatingId === `role_${user.id}`}
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                            user.role === "admin"
-                              ? "text-mango-600 hover:bg-mango-50"
-                              : "text-ink-soft hover:bg-cream"
-                          }`}
-                        >
-                          {updatingId === `role_${user.id}` ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : user.role === "admin" ? (
-                            <User size={13} />
-                          ) : (
-                            <Star size={13} />
-                          )}
-                          {user.role === "admin" ? "Demote" : "Make Admin"}
-                        </button>
+                      {user.id === currentUser?.id ? (
+                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-basil-100 text-basil-800">
+                          Active Admin (You)
+                        </span>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleRole(user)}
+                            disabled={updatingId === `role_${user.id}`}
+                            className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                              user.role === "admin"
+                                ? "text-mango-600 hover:bg-mango-50"
+                                : "text-ink-soft hover:bg-cream"
+                            }`}
+                          >
+                            {updatingId === `role_${user.id}` ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : user.role === "admin" ? (
+                              <User size={13} />
+                            ) : (
+                              <Star size={13} />
+                            )}
+                            {user.role === "admin" ? "Demote" : "Make Admin"}
+                          </button>
 
-                        <button
-                          onClick={() => handleToggleBlock(user)}
-                          disabled={updatingId === user.id}
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                            user.blocked
-                              ? "text-basil-600 hover:bg-basil-50"
-                              : "text-tomato-500 hover:bg-tomato-100/60"
-                          }`}
-                        >
-                          {updatingId === user.id ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : user.blocked ? (
-                            <ShieldCheck size={13} />
-                          ) : (
-                            <ShieldOff size={13} />
-                          )}
-                          {user.blocked ? "Unblock" : "Block"}
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => handleToggleBlock(user)}
+                            disabled={updatingId === user.id}
+                            className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                              user.blocked
+                                ? "text-basil-600 hover:bg-basil-50"
+                                : "text-tomato-500 hover:bg-tomato-100/60"
+                            }`}
+                          >
+                            {updatingId === user.id ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : user.blocked ? (
+                              <ShieldCheck size={13} />
+                            ) : (
+                              <ShieldOff size={13} />
+                            )}
+                            {user.blocked ? "Unblock" : "Block"}
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

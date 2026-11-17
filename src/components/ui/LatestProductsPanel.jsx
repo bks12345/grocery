@@ -5,6 +5,7 @@ import PriceTag from "./PriceTag";
 import SafeImage from "./SafeImage";
 import { useCart } from "../../context/CartContext";
 import { getProductImage, getProductImageFallback } from "../../data/images";
+import { getDiscountPercent } from "../../utils/discount";
 
 function LatestProductRow({ product }) {
   const { addItem } = useCart();
@@ -16,9 +17,7 @@ function LatestProductRow({ product }) {
     setTimeout(() => setAdded(false), 1200);
   };
 
-  const discountPct = product.oldPrice
-    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-    : null;
+  const discountPct = getDiscountPercent(product);
 
   return (
     <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-basil-50/60 transition-colors">
@@ -34,8 +33,8 @@ function LatestProductRow({ product }) {
           fallbackClassName="w-full h-full"
         />
         {discountPct > 0 && (
-          <span className="absolute top-1 left-1 text-[9px] font-semibold bg-tomato-500 text-white px-1.5 py-0.5 rounded-full">
-            -{discountPct}%
+          <span className="absolute top-1 left-1 text-[9px] font-bold bg-tomato-500 text-white px-1.5 py-0.5 rounded-full">
+            {discountPct}% OFF
           </span>
         )}
       </Link>

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Heart, Minus, Plus, Star, ChevronRight, Check, X } from "lucide-react";
+import { Heart, Minus, Plus, Star, ChevronRight, ChevronLeft, Check, X } from "lucide-react";
 import * as productService from "../services/productService";
 import * as categoryService from "../services/categoryService";
 import { getProductImage, getProductImageFallback } from "../data/images";
@@ -11,6 +11,7 @@ import PostcodeCheck from "../components/ui/PostcodeCheck";
 import ComingSoon from "./ComingSoon";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { getDiscountPercent } from "../utils/discount";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedParts, setSelectedParts] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const [product, setProduct] = useState(null);
   const [category, setCategory] = useState(null);
@@ -33,6 +35,7 @@ export default function ProductDetails() {
     setNotFound(false);
     setQuantity(1);
     setSelectedParts([]);
+    setSelectedImageIndex(0);
 
     productService
       .getProduct(id)
@@ -60,6 +63,20 @@ export default function ProductDetails() {
       cancelled = true;
     };
   }, [id]);
+
+  const productImages = useMemo(() => {
+    if (!product) return [];
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      return product.images.filter(Boolean);
+    }
+    if (product.image) {
+      return [product.image];
+    }
+    const defaultImg = getProductImage(product);
+    return defaultImg ? [defaultImg] : [];
+  }, [product]);
+
+  const activeImage = productImages[selectedImageIndex] || productImages[0] || (product ? getProductImage(product) : "");
 
   if (notFound) {
     return <ComingSoon title="Product not found" />;
@@ -116,6 +133,8 @@ export default function ProductDetails() {
     setTimeout(() => setAdded(false), 1800);
   };
 
+  const discountPercent = getDiscountPercent(product);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
@@ -136,37 +155,105 @@ export default function ProductDetails() {
       </nav>
 
       <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
-        {/* Image */}
-        <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] md:h-[32rem] overflow-hidden shadow-elevated">
-          <SafeImage
-            src={getProductImage(product)}
-            fallbackSrc={getProductImageFallback(product)}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            fallbackClassName="h-full"
-          />
-          <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-            {product.isBookable && (
-              <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full">
-                Book by Part
-              </span>
-            )}
-            {product.isCombo && (
-              <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full">
-                Combo Deal
-              </span>
-            )}
-            {product.isBulk && (
-              <span className="text-xs font-semibold bg-mango-400 text-basil-900 px-2.5 py-1 rounded-full">
-                Bulk Pack
-              </span>
-            )}
-            {product.oldPrice && (
-              <span className="text-xs font-semibold bg-tomato-500 text-white px-2.5 py-1 rounded-full">
-                Sale
-              </span>
+        {/* Images & Gallery Column */}
+        <div className="flex flex-col gap-3">
+          {/* Main Image Box */}
+          <div className="relative bg-basil-50 rounded-3xl h-80 sm:h-[26rem] md:h-[32rem] overflow-hidden shadow-elevated group">
+            <SafeImage
+              key={activeImage}
+              src={activeImage}
+              fallbackSrc={getProductImageFallback(product)}
+              alt={product.name}
+              className="w-full h-full object-cover transition-all duration-300"
+              fallbackClassName="h-full"
+            />
+
+            {/* Badges */}
+            <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
+              {product.isBookable && (
+                <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full shadow-sm">
+                  Book by Part
+                </span>
+              )}
+              {discountPercent > 0 && !product.isCombo ? (
+                <span className={`text-xs font-bold bg-tomato-500 text-white px-2.5 py-1 rounded-full shadow-sm ${discountPercent >= 50 ? "animate-pulse" : ""}`}>
+                  {discountPercent}% OFF
+                </span>
+              ) : null}
+              {product.isCombo && (
+                <span className="text-xs font-semibold bg-basil-600 text-white px-2.5 py-1 rounded-full shadow-sm">
+                  Combo Deal
+                </span>
+              )}
+              {product.isBulk && (
+                <span className="text-xs font-semibold bg-mango-400 text-basil-900 px-2.5 py-1 rounded-full shadow-sm">
+                  Bulk Pack
+                </span>
+              )}
+            </div>
+
+            {/* Arrow Navigators for Multi-Image */}
+            {productImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedImageIndex((prev) =>
+                      prev === 0 ? productImages.length - 1 : prev - 1
+                    )
+                  }
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-ink flex items-center justify-center shadow-soft backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedImageIndex((prev) =>
+                      prev === productImages.length - 1 ? 0 : prev + 1
+                    )
+                  }
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-ink flex items-center justify-center shadow-soft backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <ChevronRight size={18} />
+                </button>
+
+                {/* Counter */}
+                <span className="absolute bottom-4 right-4 bg-black/50 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm z-10">
+                  {selectedImageIndex + 1} / {productImages.length}
+                </span>
+              </>
             )}
           </div>
+
+          {/* Interactive Thumbnails Row */}
+          {productImages.length > 1 && (
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-0.5 px-0.5">
+              {productImages.map((imgUrl, idx) => {
+                const isActive = idx === selectedImageIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`relative w-16 sm:w-20 aspect-square rounded-2xl overflow-hidden bg-cream border-2 transition-all flex-shrink-0 ${
+                      isActive
+                        ? "border-basil-600 ring-2 ring-basil-600/30 scale-105 shadow-soft"
+                        : "border-basil-100/70 hover:border-basil-300 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`${product.name} thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -205,7 +292,19 @@ export default function ProductDetails() {
               </>
             ) : (
               <>
-                <PriceTag price={product.price} oldPrice={product.oldPrice} size="lg" />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <PriceTag price={product.price} oldPrice={product.oldPrice} size="lg" />
+                  {discountPercent > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-tomato-50 text-tomato-600 border border-tomato-200 shadow-soft">
+                      <span>⚡ Save {discountPercent}%</span>
+                      {product.oldPrice && (
+                        <span className="font-medium text-tomato-500/80">
+                          (Save ${(Number(product.oldPrice) - Number(product.price)).toFixed(2)})
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-ink-soft mt-1.5">{product.weight}</p>
               </>
             )}
@@ -268,33 +367,28 @@ export default function ProductDetails() {
                   <Link
                     key={item.id}
                     to={`/product/${item.id}`}
-                    className="flex items-center gap-3 p-3 hover:bg-basil-50/50 transition-colors"
+                    className="flex items-center justify-between gap-3 p-3 hover:bg-basil-50/50 transition-colors group"
                   >
-                    <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-basil-50">
-                      <SafeImage
-                        src={getProductImage(item)}
-                        fallbackSrc={getProductImageFallback(item)}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        fallbackClassName="w-full h-full"
-                      />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-basil-50">
+                        <SafeImage
+                          src={getProductImage(item)}
+                          fallbackSrc={getProductImageFallback(item)}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          fallbackClassName="w-full h-full"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-ink group-hover:text-basil-600 transition-colors line-clamp-1">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-ink-soft/60">{item.weight || item.brand}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-ink line-clamp-1">{item.name}</p>
-                      <p className="text-xs text-ink-soft/60">{item.weight}</p>
-                    </div>
-                    <span className="text-sm text-ink-soft shrink-0">${item.price}</span>
+                    <ChevronRight size={16} className="text-ink-soft/40 group-hover:text-basil-600 group-hover:translate-x-0.5 transition-all shrink-0" />
                   </Link>
                 ))}
-              </div>
-              <div className="flex items-center justify-between px-1 mt-3 text-sm">
-                <span className="text-ink-soft">
-                  Buying separately: $
-                  {comboItems.reduce((sum, item) => sum + item.price, 0)}
-                </span>
-                <span className="font-semibold text-basil-600">
-                  You save ${comboItems.reduce((sum, item) => sum + item.price, 0) - product.price}
-                </span>
               </div>
             </div>
           )}

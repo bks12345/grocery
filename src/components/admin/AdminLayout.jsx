@@ -10,6 +10,12 @@ import {
   Mail,
   Loader2,
   ArrowLeft,
+  Globe,
+  Beef,
+  Truck,
+  PartyPopper,
+  FileText,
+  Salad,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,9 +31,15 @@ const navItems = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { to: "/admin/nepal-orders", label: "Nepal Orders", icon: Globe },
+  { to: "/admin/goat-stock", label: "Goat Stock", icon: Beef },
+  { to: "/admin/festival-sale", label: "Festival Sale", icon: PartyPopper },
+  { to: "/admin/customized-grocery", label: "Custom Grocery", icon: Salad },
+  { to: "/admin/delivery-zones", label: "Delivery Zones", icon: Truck },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/coupons", label: "Coupons", icon: Tag },
   { to: "/admin/templates", label: "Templates", icon: Mail },
+  { to: "/admin/cms", label: "Site Content", icon: FileText },
 ];
 
 export default function AdminLayout() {

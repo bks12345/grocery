@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useStoreFeatures } from "../hooks/useStoreFeatures";
 import {
   Check,
   Minus,
@@ -22,8 +23,10 @@ import {
   Waves,
   Wind,
   Shell,
+  Loader2,
 } from "lucide-react";
-import { goatParts, goatQtyStep, goatHeroImage, goatFeatureImages } from "../data/goatParts";
+import { goatQtyStep, goatHeroImage, goatFeatureImages } from "../data/goatParts";
+import * as goatService from "../services/goatService";
 import { useCart } from "../context/CartContext";
 import SafeImage from "../components/ui/SafeImage";
 
@@ -52,11 +55,9 @@ const groupStyles = {
 };
 
 function GoatPartIllustration({ part, size = "md" }) {
-  // Tries, in order: your own local photo -> the built-in backup photo (if
-  // any) -> the colored icon tile. Matches the same local-photo-first
-  // pattern used for categories/products (see public/images/README.md).
+  // Tries, in order: custom/uploaded cut photo -> local fallback photo -> colored icon tile.
   const sources = useMemo(
-    () => [`/images/goat-parts/${part.id}.jpg`, part.image].filter(Boolean),
+    () => [part.image, `/images/goat-parts/${part.id}.jpg`].filter(Boolean),
     [part.id, part.image]
   );
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -95,10 +96,18 @@ function GoatPartIllustration({ part, size = "md" }) {
 export default function BookGoat() {
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { goatBookingActive, loading: featuresLoading } = useStoreFeatures();
 
+  const [availableParts, setAvailableParts] = useState(null);
   // selections: { [partId]: quantityInKg }
   const [selections, setSelections] = useState({});
   const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message }
+
+  useEffect(() => {
+    goatService.getAvailableGoatParts().then((parts) => {
+      setAvailableParts(parts);
+    });
+  }, []);
 
   const selectedIds = Object.keys(selections);
 
@@ -108,7 +117,7 @@ export default function BookGoat() {
       if (next[part.id] != null) {
         delete next[part.id];
       } else {
-        next[part.id] = part.minQty;
+        next[part.id] = part.minQty || 0.5;
       }
       return next;
     });
@@ -116,7 +125,8 @@ export default function BookGoat() {
   };
 
   const setQuantity = (part, qty) => {
-    const clamped = Math.max(part.minQty, Math.round(qty / goatQtyStep) * goatQtyStep);
+    const min = part.minQty || 0.5;
+    const clamped = Math.max(min, Math.round(qty / goatQtyStep) * goatQtyStep);
     setSelections((prev) => ({ ...prev, [part.id]: clamped }));
   };
 
@@ -130,12 +140,15 @@ export default function BookGoat() {
 
   const selectionDetails = useMemo(
     () =>
-      selectedIds.map((id) => {
-        const part = goatParts.find((p) => p.id === id);
-        const qty = selections[id];
-        return { ...part, quantity: qty, total: Math.round(qty * part.pricePerKg) };
-      }),
-    [selections, selectedIds]
+      selectedIds
+        .map((id) => {
+          const part = (availableParts || []).find((p) => p.id === id);
+          if (!part) return null;
+          const qty = selections[id];
+          return { ...part, quantity: qty, total: Math.round(qty * part.pricePerKg) };
+        })
+        .filter(Boolean),
+    [selections, selectedIds, availableParts]
   );
 
   const totalWeight = selectionDetails.reduce((sum, s) => sum + s.quantity, 0);
@@ -172,6 +185,36 @@ export default function BookGoat() {
     handleAddToCart();
     navigate("/checkout");
   };
+
+  if (!featuresLoading && !goatBookingActive) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full card-elevated rounded-3xl p-8 text-center bg-white border border-basil-100 shadow-soft-lg">
+          <div className="w-16 h-16 rounded-full bg-mango-100 text-mango-700 flex items-center justify-center mx-auto mb-4">
+            <Beef size={32} />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-ink">Goat Booking is Temporarily Closed</h1>
+          <p className="text-ink-soft text-sm mt-3 leading-relaxed">
+            We are currently not accepting goat portion bookings at this time. Please check back during our upcoming festive harvest seasons or browse our fresh grocery catalog.
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/shop"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-600 text-white text-sm font-semibold hover:bg-basil-700 hover:shadow-glow transition-all shadow-soft"
+            >
+              Browse Grocery Shop
+            </Link>
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-basil-50 text-basil-700 text-sm font-semibold hover:bg-basil-100 transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -221,34 +264,54 @@ export default function BookGoat() {
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
         {/* 1. Parts grid */}
         <div className="lg:col-span-2">
-          <h2 className="text-sm font-semibold text-ink mb-3">1. Select Goat Body Parts</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {goatParts.map((part) => {
-              const selected = selections[part.id] != null;
-              return (
-                <button
-                  key={part.id}
-                  type="button"
-                  onClick={() => togglePart(part)}
-                  aria-pressed={selected}
-                  className={`relative flex flex-col items-center gap-2 rounded-2xl border p-3 text-center transition-all ${
-                    selected
-                      ? "border-basil-600 bg-basil-50 shadow-soft"
-                      : "border-ink-soft/10 bg-white hover:border-basil-300"
-                  }`}
-                >
-                  {selected && (
-                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-basil-600 text-white flex items-center justify-center">
-                      <Check size={12} aria-hidden="true" />
-                    </span>
-                  )}
-                  <GoatPartIllustration part={part} />
-                  <span className="text-sm font-medium text-ink">{part.name}</span>
-                  <span className="text-xs text-ink-soft/60">${part.pricePerKg.toLocaleString()} /kg</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-ink">1. Select Available Goat Body Parts</h2>
+            {availableParts && (
+              <span className="text-xs text-basil-600 font-medium">
+                {availableParts.length} cut{availableParts.length !== 1 ? "s" : ""} in stock
+              </span>
+            )}
           </div>
+
+          {!availableParts ? (
+            <div className="p-12 flex justify-center items-center rounded-2xl bg-white shadow-soft">
+              <Loader2 className="animate-spin text-basil-600" size={24} />
+            </div>
+          ) : availableParts.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl bg-white shadow-soft">
+              <Beef size={32} className="text-ink-soft/40 mx-auto mb-2" />
+              <p className="text-sm font-medium text-ink">No goat cuts currently in stock.</p>
+              <p className="text-xs text-ink-soft/60 mt-1">Please check back soon as fresh inventory is updated daily.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {availableParts.map((part) => {
+                const selected = selections[part.id] != null;
+                return (
+                  <button
+                    key={part.id}
+                    type="button"
+                    onClick={() => togglePart(part)}
+                    aria-pressed={selected}
+                    className={`relative flex flex-col items-center gap-2 rounded-2xl border p-3 text-center transition-all ${
+                      selected
+                        ? "border-basil-600 bg-basil-50 shadow-soft"
+                        : "border-ink-soft/10 bg-white hover:border-basil-300"
+                    }`}
+                  >
+                    {selected && (
+                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-basil-600 text-white flex items-center justify-center">
+                        <Check size={12} aria-hidden="true" />
+                      </span>
+                    )}
+                    <GoatPartIllustration part={part} />
+                    <span className="text-sm font-medium text-ink">{part.name}</span>
+                    <span className="text-xs text-ink-soft/60">${part.pricePerKg?.toLocaleString()} /kg</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right column: 2. Quantity editor, 3. Selection summary */}

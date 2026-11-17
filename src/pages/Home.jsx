@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Users, Tags, BadgePercent, Sparkles, Star } from "lucide-react";
 import * as productService from "../services/productService";
 import * as categoryService from "../services/categoryService";
+import { getContent, DEFAULT_CONTENT } from "../services/contentService";
 import { useAsync } from "../hooks/useAsync";
+import { useEffect, useState } from "react";
 import { getCategoryImage, getCategoryImageFallback } from "../data/images";
 import ProductCard from "../components/ui/ProductCard";
 import FestivalSale from "../components/ui/FestivalSale";
@@ -12,38 +14,7 @@ import { ProductGridSkeleton, CategoryCardSkeleton, ProductCardSkeleton } from "
 import Slider from "../components/ui/Slider";
 import ScrollReveal from "../components/ui/ScrollReveal";
 
-const heroSlides = [
-  {
-    eyebrow: "Fresh picks, every morning",
-    title: "Pantry staples that feel straight from the source.",
-    subtitle:
-      "Shop grains, flours, and everyday pantry staples — delivered to your door at prices that make sense.",
-    image: getCategoryImage("grains-flour"),
-    imageFallback: getCategoryImageFallback("grains-flour"),
-    primaryCta: { label: "Shop Now", to: "/shop" },
-    secondaryCta: { label: "Explore Bulk Packs", to: "/shop?bulk=true" },
-  },
-  {
-    eyebrow: "Stock up & save",
-    title: "Family bulk packs, better value per kg.",
-    subtitle:
-      "Rice, dal, oil, and atta in bulk sizes built for the whole family — fewer trips to the store, more savings in your pocket.",
-    image: getCategoryImage("pulses-beans"),
-    imageFallback: getCategoryImageFallback("pulses-beans"),
-    primaryCta: { label: "Shop Bulk Packs", to: "/shop?bulk=true" },
-    secondaryCta: { label: "Browse All", to: "/shop" },
-  },
-  {
-    eyebrow: "Everyday essentials",
-    title: "Cooking essentials, honestly sourced.",
-    subtitle:
-      "From pure honey to everyday cooking oils — quality you can trust for the essentials that stock your kitchen.",
-    image: getCategoryImage("cooking-essentials"),
-    imageFallback: getCategoryImageFallback("cooking-essentials"),
-    primaryCta: { label: "Shop Essentials", to: "/shop?category=cooking-essentials" },
-    secondaryCta: { label: "View Categories", to: "/categories" },
-  },
-];
+const defaultHeroSlides = DEFAULT_CONTENT.hero.slides;
 
 const offerButtons = [
   {
@@ -69,10 +40,10 @@ const offerButtons = [
   },
   {
     icon: Sparkles,
-    label: "Latest Product",
-    to: "/shop?new=true",
-    iconBg: "bg-basil-100",
-    iconColor: "text-basil-700",
+    label: "Festival Sale",
+    to: "/offers",
+    iconBg: "bg-mango-100",
+    iconColor: "text-mango-600",
   },
   {
     icon: Star,
@@ -84,6 +55,29 @@ const offerButtons = [
 ];
 
 export default function Home() {
+  const [heroSlides, setHeroSlides] = useState(defaultHeroSlides);
+
+  useEffect(() => {
+    let cancelled = false;
+    getContent("hero").then((res) => {
+      if (!cancelled && res?.slides && Array.isArray(res.slides) && res.slides.length > 0) {
+        setHeroSlides(res.slides);
+      }
+    });
+
+    const handleContentUpdate = (e) => {
+      if (e.detail?.key === "hero" && e.detail.data?.slides) {
+        setHeroSlides(e.detail.data.slides);
+      }
+    };
+
+    window.addEventListener("daalbhat:content-updated", handleContentUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("daalbhat:content-updated", handleContentUpdate);
+    };
+  }, []);
+
   const { data: categories, loading: categoriesLoading } = useAsync(
     () => categoryService.getCategories(),
     []

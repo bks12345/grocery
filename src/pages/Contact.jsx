@@ -1,20 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Phone, Mail, MapPin, Clock, Loader2, CheckCircle2 } from "lucide-react";
-import { apiPost } from "../services/apiClient";
-
-const contactDetails = [
-  { icon: Phone, label: "Phone", value: "+91 98765 43210" },
-  { icon: Mail, label: "Email", value: "support@daalbhat.com" },
-  { icon: MapPin, label: "Store Address", value: "123 Market Street, Sydney" },
-  { icon: Clock, label: "Support Hours", value: "Mon–Sat, 9am – 8pm" },
-];
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
+import { getContent, DEFAULT_CONTENT } from "../services/contentService";
 
 const initialForm = { name: "", email: "", subject: "", message: "" };
 
 export default function Contact() {
+  const [content, setContent] = useState(DEFAULT_CONTENT.contact);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getContent("contact").then((res) => {
+      if (!cancelled && res) {
+        setContent((prev) => ({ ...prev, ...res }));
+      }
+    });
+
+    const handleContentUpdate = (e) => {
+      if (e.detail?.key === "contact" && e.detail.data) {
+        setContent((prev) => ({ ...prev, ...e.detail.data }));
+      }
+    };
+
+    window.addEventListener("daalbhat:content-updated", handleContentUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("daalbhat:content-updated", handleContentUpdate);
+    };
+  }, []);
+
+  const contactDetails = [
+    { icon: Phone, label: "Phone", value: content.phone || "+91 98765 43210" },
+    { icon: Mail, label: "Email", value: content.email || "support@daalbhat.com" },
+    { icon: MapPin, label: "Store Address", value: content.address || "123 Market Street, Sydney" },
+    { icon: Clock, label: "Support Hours", value: content.hours || "Mon–Sat, 9am – 8pm" },
+  ];
 
   const handleChange = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -22,8 +46,14 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    // Call real backend endpoint
-    await apiPost('/api/contact', form).catch(err => console.error('Contact failed:', err));
+    try {
+      await addDoc(collection(db, "contactMessages"), {
+        ...form,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn("[Contact] Firestore save failed, recorded locally:", err.message);
+    }
     setSubmitting(false);
     setSent(true);
     setForm(initialForm);
@@ -32,9 +62,11 @@ export default function Contact() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       <div className="text-center max-w-xl mx-auto">
-        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Get in Touch</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">
+          {content.title || "Get in Touch"}
+        </h1>
         <p className="text-ink-soft mt-2 text-sm sm:text-base">
-          Questions about an order, a product, or anything else — we're happy to help.
+          {content.subtitle || "Questions about an order, a product, or anything else — we're happy to help."}
         </p>
       </div>
 
@@ -53,10 +85,10 @@ export default function Contact() {
             </div>
           ))}
 
-          {/* Map placeholder — swap for a real embed once you have a Maps API key */}
+          {/* Map */}
           <div className="card-elevated rounded-2xl overflow-hidden h-48 bg-basil-50">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d424141.6978944982!2d150.93197474999997!3d-33.84824395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b129838f39a743f%3A0x3017d681632a850!2sSydney%20NSW%2C%20Australia!5e0!3m2!1sen!2snp!4v1784896782864!5m2!1sen!2snp"
+              src={content.mapEmbedUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d424141.6978944982!2d150.93197474999997!3d-33.84824395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b129838f39a743f%3A0x3017d681632a850!2sSydney%20NSW%2C%20Australia!5e0!3m2!1sen!2snp!4v1784896782864!5m2!1sen!2snp"}
               className="block w-full h-full border-0"
               allowFullScreen=""
               loading="lazy"

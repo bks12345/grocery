@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "DAALBHAT20",
+    "createdAt": "2026-08-18T03:58:05.667Z",
+    "active": true,
+    "value": 20,
+    "type": "percent",
+    "code": "DAALBHAT20",
+    "description": "20% off festival discount"
+  },
+  {
+    "_id": "FREESHIP",
+    "description": "Free standard delivery",
+    "active": true,
+    "code": "FREESHIP",
+    "type": "flat",
+    "createdAt": "2026-08-18T03:58:05.311Z",
+    "value": 5
+  },
+  {
+    "_id": "WELCOME10",
+    "active": true,
+    "code": "WELCOME10",
+    "type": "percent",
+    "value": 10,
+    "description": "10% off your first order",
+    "createdAt": "2026-08-18T03:58:04.966Z"
+  }
+]

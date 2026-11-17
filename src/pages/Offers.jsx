@@ -5,6 +5,7 @@ import * as couponService from "../services/couponService";
 import * as productService from "../services/productService";
 import ProductCard from "../components/ui/ProductCard";
 import { ProductGridSkeleton } from "../components/ui/Skeletons";
+import { getDiscountPercent } from "../utils/discount";
 
 export default function Offers() {
   const [coupons, setCoupons] = useState([]);
@@ -16,7 +17,7 @@ export default function Offers() {
   useEffect(() => {
     couponService.getActiveCoupons().then(setCoupons);
     productService.queryProducts({ sort: "price-high-low", pageSize: 100 }).then((res) =>
-      setSaleProducts(res.items.filter((p) => p.oldPrice))
+      setSaleProducts(res.items.filter((p) => getDiscountPercent(p) > 0 || p.oldPrice))
     );
     productService.getBulkProducts().then(setBulkProducts);
     productService.getComboDeals().then(setComboDeals);
